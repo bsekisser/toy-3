@@ -1,0 +1,24 @@
+#BUILD := build-$(shell $(CC) -dumpmachine)
+CFLAGS = -g -Wall -O2 -march=native $(INCLUDE)
+CFLAGS += -MD -MP
+
+
+$(BUILD):
+	-mkdir -p $(BUILD)
+
+$(BUILD)/$(TARGET) : $(OBJS)
+	$(CC) $(LFLAGS) $^ -o $@ $(LDFLAGS)
+
+$(OBJS) : $(BUILD)/%.o : $(SOURCE)/%.c
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
+
+
+
+target: $(BUILD)/$(TARGET)
+
+clean:
+	-rm -rf $(BUILD)/*.d $(BUILD)/*.o $(BUILD)/$(TARGET) *.i *.s *.o *.d
+
+
+
+-include $(BUILD)/*.d
