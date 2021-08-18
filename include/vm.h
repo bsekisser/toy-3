@@ -183,6 +183,7 @@ typedef struct vm_ixr_t {
 		struct {					/* memory access */
 			uint8_t			io:1;
 			uint8_t			is_signed:1;
+			uint8_t			rw;
 			uint8_t			size;
 		}ma;
 		
@@ -207,7 +208,7 @@ typedef struct vm_ixr_t {
 
 typedef struct vm_t* vm_p;
 typedef struct vm_t {
-	vm_ixr_t				inst[5];
+	vm_ixr_t				inst;
 
 	uint32_t				rf[16];
 //	uint32_t				tea;

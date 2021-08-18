@@ -4,12 +4,31 @@
 #define CALL(_x) \
 	LR = PC; PC = (_x)
 
-#define INST_MA(_io, _signed, _size) \
+#define _INST_MA(_rw, _io, _signed, _size) \
 	({ \
+		MA.rw = _rw ? 10 : 01; \
 		MA.io = _io; \
 		MA.is_signed = _signed; \
 		MA.size = _size; \
 	})
+
+#define INST_IO_Rs(_size) \
+	_INST_MA(0, 1, 1, _size)
+
+#define INST_IO_Ru(_size) \
+	_INST_MA(0, 1, 0, _size)
+
+#define INST_IO_W(_size) \
+	_INST_MA(1, 1, 0, _size)
+
+#define INST_MA_Rs(_size) \
+	_INST_MA(0, 0, 1, _size)
+
+#define INST_MA_Ru(_size) \
+	_INST_MA(0, 0, 0, _size)
+
+#define INST_MA_W(_size) \
+	_INST_MA(1, 0, 0, _size)
 
 #define MOV_CC(_x, _z) \
 	if(_x) RD = _z

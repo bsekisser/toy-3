@@ -85,27 +85,27 @@
 	INST_ESAC(liu, rd_vv_vv, RD = IR_V24) \
 	INST_ESAC(lis, rd_vv_vv, RD = IR_V24s) \
 	\
-	INST_ESAC(ldb, rd_raea, INST_MA(0, 0, sizeof(uint8_t))) \
-	INST_ESAC(ldw, rd_raea, INST_MA(0, 0, sizeof(uint16_t))) \
-	INST_ESAC(ldl, rd_raea, INST_MA(0, 0, sizeof(uint32_t))) \
+	INST_ESAC(ldb, rd_raea, INST_MA_Ru(sizeof(uint8_t))) \
+	INST_ESAC(ldw, rd_raea, INST_MA_Ru(sizeof(uint16_t))) \
+	INST_ESAC(ldl, rd_raea, INST_MA_Ru(sizeof(uint32_t))) \
 	\
-	INST_ESAC(ldbs, rd_raea, INST_MA(0, 1, sizeof(int8_t))) \
-	INST_ESAC(ldws, rd_raea, INST_MA(0, 1, sizeof(int16_t))) \
+	INST_ESAC(ldbs, rd_raea, INST_MA_Rs(sizeof(int8_t))) \
+	INST_ESAC(ldws, rd_raea, INST_MA_Rs(sizeof(int16_t))) \
 	\
-	INST_ESAC(stb, rdea_ra, INST_MA(0, 0, sizeof(uint8_t))) \
-	INST_ESAC(stw, rdea_ra, INST_MA(0, 0, sizeof(uint16_t))) \
-	INST_ESAC(stl, rdea_ra, INST_MA(0, 0, sizeof(uint32_t))) \
+	INST_ESAC(stb, rdea_ra, INST_MA_W(sizeof(uint8_t))) \
+	INST_ESAC(stw, rdea_ra, INST_MA_W(sizeof(uint16_t))) \
+	INST_ESAC(stl, rdea_ra, INST_MA_W(sizeof(uint32_t))) \
 	\
-	INST_ESAC(iorb, rd_raea, INST_MA(1, 0, sizeof(uint8_t))) \
-	INST_ESAC(iorw, rd_raea, INST_MA(1, 0, sizeof(uint16_t))) \
-	INST_ESAC(iorl, rd_raea, INST_MA(1, 0, sizeof(uint32_t))) \
+	INST_ESAC(iorb, rd_raea, INST_IO_Ru(sizeof(uint8_t))) \
+	INST_ESAC(iorw, rd_raea, INST_IO_Ru(sizeof(uint16_t))) \
+	INST_ESAC(iorl, rd_raea, INST_IO_Ru(sizeof(uint32_t))) \
 	\
-	INST_ESAC(iorbs, rdea_ra, INST_MA(1, 1, sizeof(int8_t))) \
-	INST_ESAC(iorws, rdea_ra, INST_MA(1, 1, sizeof(int16_t))) \
+	INST_ESAC(iorbs, rdea_ra, INST_IO_Rs(sizeof(int8_t))) \
+	INST_ESAC(iorws, rdea_ra, INST_IO_Rs(sizeof(int16_t))) \
 	\
-	INST_ESAC(iowb, rdea_ra, INST_MA(1, 0, sizeof(uint8_t))) \
-	INST_ESAC(ioww, rdea_ra, INST_MA(1, 0, sizeof(uint16_t))) \
-	INST_ESAC(iowl, rdea_ra, INST_MA(1, 0, sizeof(uint32_t))) \
+	INST_ESAC(iowb, rdea_ra, INST_IO_W(sizeof(uint8_t))) \
+	INST_ESAC(ioww, rdea_ra, INST_IO_W(sizeof(uint16_t))) \
+	INST_ESAC(iowl, rdea_ra, INST_IO_W(sizeof(uint32_t))) \
 	\
 	INST_ESAC(sextb, rd_ra_zz, RD = (int8_t)RA) \
 	INST_ESAC(sextw, rd_ra_zz, RD = (int16_t)RA) \

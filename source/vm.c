@@ -66,44 +66,74 @@ static void vm_step_0_fetch(_PASS_VM, _PASS_INST)
 	IR = *(uint32_t*)IP;
 }
 
+static void _vm_step_3_io_memory_access_read(_PASS_VM, _PASS_INST)
+{
+	if(!MA.io)
+	{
+		switch(MA.size)
+		{
+			case sizeof(uint8_t):
+				RD = MA.is_signed ? *(int8_t*)EA : *(uint8_t*)EA;
+				break;
+			case sizeof(uint16_t):
+				RD = MA.is_signed ? *(int16_t*)EA : *(uint16_t*)EA;
+				break;
+			default:
+				RD = *(uint32_t*)EA;
+				break;
+		}
+	}
+	else
+	{
+		uint32_t data;
+		
+		data = io_read(vm, EA, MA.size);
+
+		switch(MA.size)
+		{
+			case sizeof(uint8_t):
+				RD = MA.is_signed ? (int8_t)data : (uint8_t)data;
+				break;
+			case sizeof(uint16_t):
+				RD = MA.is_signed ? (int16_t)data : (uint16_t)data;
+				break;
+			default:
+				RD = data;
+		}
+	}
+}
+
+static void _vm_step_3_io_memory_access_write(_PASS_VM, _PASS_INST)
+{
+	if(!MA.io)
+	{
+		switch(MA.size)
+		{
+			case sizeof(uint8_t):
+				*(uint8_t*)EA = RA;
+				break;
+			case sizeof(uint16_t):
+				*(uint16_t*)EA = RA;
+				break;
+			case sizeof(uint32_t):
+				*(uint32_t*)EA = RA;
+				break;
+		}
+	}
+	else
+		io_write(vm, EA, RA, MA.size);
+}
+
 static void vm_step_3_io_memory_access(_PASS_VM, _PASS_INST)
 {
-	uint32_t dout = RA;
+	if(MA.rw & 0x01)
+		_vm_step_3_io_memory_access_read(vm, inst);
+	else if(MA.rw & 0x02)
+		_vm_step_3_io_memory_access_write(vm, inst);
+	else
+		return;
 
-	if(MA) /* writeback -- ma */
-	{
-		if(MA.is_signed)
-		{
-			switch(MA.size)
-			{
-				case	sizeof(int8_t):
-					dout = (int8_t)RA;
-					break;
-				case	sizeof(int16_t):
-					dout = (int16_t)RA;
-					break;
-			}
-		}
-
-		if(!MA.io)
-		{
-			switch(MA.size)
-			{
-				case sizeof(uint8_t):
-					*(uint8_t*)EA = dout;
-					break;
-				case sizeof(uint16_t):
-					*(uint16_t*)EA = dout;
-					break;
-				case sizeof(uint32_t):
-					*(uint32_t*)EA = dout;
-					break;
-			}
-		} else
-			io_write(vm, EA, dout, MA.size);
-
-		vm->cycle++;
-	}
+	vm->cycle++;
 }
 
 static void vm_step_4_writeback_register(_PASS_VM, _PASS_INST)
