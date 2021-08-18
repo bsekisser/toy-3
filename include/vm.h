@@ -6,24 +6,38 @@
 #define MHz(_x)		KHz(KHz(_x))
 
 enum {
-	rBP = 0x0c,
-	rLR = 0x0d,
-	rSP = 0x0e,
-	rPC = 0x0f,
+		rBP = 0x0b,
+
+	/*	arm designations */
+		rA1 = 0x00,
+		rA2 = 0x01,
+		rA3 = 0x02,
+
+		rV1 = 0x03,
+		rV2 = 0x04,
+		rV3 = 0x05,
+		rV4 = 0x06,
+		rV5 = 0x07,
+		rV6 = 0x08,
+		rV7 = 0x09,
+		rV8 = 0x0a,
+
+		rFP = 0x0b, /* aka rBP */
+		rIP = 0x0c, /* intra procedure scratch register */
+		rSP = 0x0d,
+		rLR = 0x0e,
+		rPC = 0x0f,
+
+	/* arm aka */
+		rSB = 0x09, /* static base */
 };
 
 /*
 	0 -- 1 -- IF -- fetch -- writeback
 	1 -- 2 -- ID -- decode
-	2 -- 3 -- EX -- execute -- (fetch -- writeback)
+	2 -- 3 -- EX -- execute
 	3 -- 4 -- MA -- memory access
-	5 -- 5 -- WB -- writeback
-
-	0 -- IF0 -- ID0 -- EX0 -- IF1/WB0 -- ID1 -- EX1 -- IF2/WB1
-	1 -- ID0 -- EX0 -- IF1/WB0 -- ID1 -- EX1 -- IF2/WB1 -- ID2
-	2 -- EX0 -- IF1/WB0 -- ID1 -- EX1 -- IF2/WB1 -- ID2 -- EX2
-	3 -- IF1/WB0 -- ID1 -- EX1 -- IF2/WB1 -- ID2 -- EX2 -- IF3/WB2
-	4 -- ID1 -- EX1 -- IF2/WB1 -- ID2 -- EX2 -- IF3/WB2 -- ID3
+	4 -- 5 -- WB -- writeback
 
 	ea_xx_xx --	eeee eeee | eeee eeee | eeee eeee | oooo oooo
 	rd_ra_ea -- eeee eeee | eeee eeee | a1a1 dddd | oooo oooo
@@ -35,7 +49,11 @@ enum {
 	ra_zz_zz -- xxxx xxxx | xxxx xxxx | xxxx a1a1 | oooo oooo
 	ra_rb_ea -- eeee eeee | eeee eeee | b2b2 a1a1 | oooo oooo
 
-	rd_ra_rb_rc -- vvvv vvvv | c3c3 b2b2 | a1a1 dddd | oooo oooo
+	rd_ra_rb_rc	-- vvvv vvvv | c3c3 b2b2 | a1a1 dddd | oooo oooo
+	rdrc_ra_rb	-- vvvv vvvv | c3c3 b2b2 | a1a1 dddd | oooo oooo
+
+	rdea_ma_ra	-- eeee eeee | eeee eeee | a1a1 dddd | oooo oooo
+	rdea_io_ra	-- eeee eeee | eeee eeee | a1a1 dddd | oooo oooo
 
 	a1 -- src reg
 	b2 -- src2 reg
@@ -76,17 +94,25 @@ enum {
 #define RFV(_x) vm->rf[_x]
 #define V(_x) inst->rv[_x]
 
-#define WB vm->flags.xx.wb
+#define MAio MA.io;
+
+#define WBc WB.c
+#define WBd WB.d
 
 enum {
-	PSR_BIT_CF,
-	PSR_BIT_NF,
-	PSR_BIT_OVF,
-	PSR_BIT_ZF,
-	PSR_BIT_IE = 16,		/* interrupt enable */
-	PSR_BIT_IX,				/* instruction exception */
-	PSR_BIT_ST,				/* instruction step */
-	PSR_BIT_US,				/* user/supervisor */
+	/* condition code flags */
+		PSR_BIT_CF,
+		PSR_BIT_NF,
+		PSR_BIT_OVF,
+		PSR_BIT_ZF,
+
+	/* user mode flags */
+		PSR_BIT_US = 8,				/* user/supervisor */
+
+	/* supervisor mode flags */
+		PSR_BIT_IE = 16,		/* interrupt enable */
+		PSR_BIT_IX,				/* instruction exception */
+		PSR_BIT_ST,				/* instruction step */
 };
 
 #define PSR_CF		(1 << PSR_BIT_CF)
@@ -105,14 +131,15 @@ enum {
 #define EA inst->ea
 #define IP inst->ip
 #define IR inst->ir
+#define MA inst->ma
+#define WB inst->wb
 #define VV inst->vv
 
 #define BP RFV(rBP)
 #define LR RFV(rLR)
 #define PC RFV(rPC)
-#define PSR vm->flags.psr
+#define PSR vm->psr
 #define SP RFV(rSP)
-//#define TEA vm->tea
 
 #define RD V(0)
 #define RA V(1)
@@ -146,10 +173,23 @@ typedef struct vm_ixr_t {
 		uint32_t			ir;
 
 		uint8_t				cc;
+
 		union {
 			uint32_t		ea;
+
 			uint32_t		vv;
 		};
+
+		struct {					/* memory access */
+			uint8_t			io:1;
+			uint8_t			is_signed:1;
+			uint8_t			size;
+		}ma;
+		
+		struct {					/* writeback */
+			uint8_t			c:1;
+			uint8_t			d:1;
+		}wb;
 }vm_ixr_t;
 
 #define VM_NVRAM_ALLOC		256
@@ -167,34 +207,20 @@ typedef struct vm_ixr_t {
 
 typedef struct vm_t* vm_p;
 typedef struct vm_t {
-	vm_ixr_t	inst;
+	vm_ixr_t				inst[5];
 
 	uint32_t				rf[16];
 //	uint32_t				tea;
 
-	struct {
-		uint32_t			psr;
+	uint64_t				cycle;
 
-		struct {
-//			uint8_t			cw:1; /* cold / warm boot */
-			uint8_t			ie:1; /* interrupt enable */
-//			uint8_t			ix:1; /* instruction exception */
-//			uint8_t			ii:1; /* set on interrupt, rfi cleared */
-			uint8_t			st:1; /* step instruction */
-			uint8_t			us:1; /* user / supervisor */
-		}cr;
-		
-		struct {
-//			uint8_t			ps:1; /* pipeline stall */
-			uint8_t			wb:1; /* writeback */
-		}xx;
-	}flags;
+	uint32_t				psr;
 	
 	uint8_t					sdram[VM_SDRAM_ALLOC];
 	uint8_t					nvram[VM_NVRAM_ALLOC];
 	uint8_t					rom[VM_ROM_ALLOC];
 }vm_t;
 
-int vm_interrupt(vm_p vm);
-int vm_reset(vm_p vm);
+int vm_interrupt(_PASS_VM);
+int vm_reset(_PASS_VM);
 int vm_step(_PASS_VM);
