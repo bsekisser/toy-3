@@ -169,8 +169,11 @@ typedef struct vm_ixr_t {
 		uint8_t				rr[4];
 		uint32_t			rv[4];
 
-		uint32_t			ip;
+		uint32_t*			ip;
 		uint32_t			ir;
+
+		void*				decode_fn;
+		void*				execute_fn;
 
 		uint8_t				cc;
 
@@ -206,6 +209,7 @@ typedef struct vm_ixr_t {
 #define VM_DEVICE_SLOT(_pat)	(((_pat) >> 8) & 0x1f)
 #define VM_DEVICE_OFFSET(_pat)	((_pat) & 0xff)
 
+typedef struct vm_t** vm_h;
 typedef struct vm_t* vm_p;
 typedef struct vm_t {
 	vm_ixr_t				inst;
@@ -222,6 +226,6 @@ typedef struct vm_t {
 	uint8_t					rom[VM_ROM_ALLOC];
 }vm_t;
 
-int vm_interrupt(_PASS_VM);
-int vm_reset(_PASS_VM);
+void vm_interrupt(_PASS_VM);
+void vm_reset(_PASS_VM);
 int vm_step(_PASS_VM);
