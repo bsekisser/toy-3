@@ -131,8 +131,6 @@ static void vm_step_1_decode_xx_xx_xx(_PASS_VM, _PASS_INST)
 #define INST_ESAC(_esac, _fn, _action) \
 	vm_step_1_decode_##_fn,
 
-typedef void (*decode_fn_t)(_PASS_VM, _PASS_INST);
-
 static decode_fn_t vm_step_1_decode_fn[] = {
 	INST_ESAC_LIST
 };

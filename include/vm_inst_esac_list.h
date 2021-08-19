@@ -71,7 +71,7 @@
 	INST_ESAC(movle, rd_ra_rb_rc, MOV_CC(RA <= RB, RC)) \
 	INST_ESAC(movne, rd_ra_rb_rc, MOV_CC(RA != RB, RC)) \
 	\
-	INST_ESAC(bra, ea_xx_xx, PC = EA) \
+	INST_ESAC(bra, ea_xx_xx, TRACE("bra 0x%08x -- 0x%08x", EA, IR_V24s); PC = EA) \
 	INST_ESAC(call, ea_xx_xx, CALL(EA)) \
 	INST_ESAC(rts, xx_xx_xx, RTS()) \
 	INST_ESAC(rti, xx_xx_xx, RTI()) \

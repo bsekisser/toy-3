@@ -85,10 +85,10 @@ enum {
 
 #define IR_V8	(IR3 & 0x000000ff)
 #define IR_V16	(IR2 & 0x0000ffff)
-#define IR_V16s	(((signed)IR >> 16) & 0x0000ffff)
+#define IR_V16s	((signed)IR >> 16)
 #define IR_V20	(IR2h & 0x000fffff)
 #define IR_V24	(IR1 & 0x00ffffff)
-#define IR_V24s	(((signed)IR >> 8) & 0x00ffffff)
+#define IR_V24s	((signed)IR >> 8)
 
 #define R(_x) inst->rr[_x]
 #define RFV(_x) vm->rf[_x]
@@ -141,6 +141,9 @@ enum {
 #define PSR vm->psr
 #define SP RFV(rSP)
 
+#define pPC (*vm->pc)
+#define pSP (*vm->sp)
+
 #define RD V(0)
 #define RA V(1)
 #define RB V(2)
@@ -162,7 +165,21 @@ typedef struct trap_table_t {
 	};
 }trap_table_t;
 
+typedef struct vm_t** vm_h;
+typedef struct vm_t* vm_p;
+
 typedef struct vm_ixr_t* vm_ixr_p;
+
+#define IF_VM(_x) _x
+#define _PASS_VM vm_p vm
+
+#define IF_INST(_x) _x
+#define _PASS_INST vm_ixr_p inst
+
+typedef void (*decode_fn_t)(_PASS_VM, _PASS_INST);
+typedef void (*execute_fn_t)(_PASS_VM, _PASS_INST);
+
+
 typedef struct vm_ixr_t {
 //		vm_p				vm;
 
@@ -172,8 +189,8 @@ typedef struct vm_ixr_t {
 		uint32_t*			ip;
 		uint32_t			ir;
 
-		void*				decode_fn;
-		void*				execute_fn;
+		decode_fn_t			decode_fn;
+		execute_fn_t		execute_fn;
 
 		uint8_t				cc;
 
@@ -209,14 +226,13 @@ typedef struct vm_ixr_t {
 #define VM_DEVICE_SLOT(_pat)	(((_pat) >> 8) & 0x1f)
 #define VM_DEVICE_OFFSET(_pat)	((_pat) & 0xff)
 
-typedef struct vm_t** vm_h;
-typedef struct vm_t* vm_p;
 typedef struct vm_t {
 	vm_ixr_t				inst;
 
 	uint32_t				rf[16];
-//	uint32_t				tea;
-
+	uint32_t**				pc;
+	uint32_t**				sp;
+	
 	uint64_t				cycle;
 
 	uint32_t				psr;
