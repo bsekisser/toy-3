@@ -45,6 +45,13 @@ static void vm_step_1_decode_rd_ra_zz(_PASS_VM, _PASS_INST)
 	RA = RFV(RAr);
 }
 
+static void vm_step_1_decode_rd_ra_pcea(_PASS_VM, _PASS_INST)
+{
+	vm_step_1_decode_rd_ra_zz(vm, inst);
+	
+	EA = PC + IR_V16s;
+}
+
 static void vm_step_1_decode_rd_raea(_PASS_VM, _PASS_INST)
 {
 	vm_step_1_decode_rd_ra_zz(vm, inst);
@@ -99,6 +106,16 @@ static void vm_step_1_decode_ra_rb_zz(_PASS_VM, _PASS_INST)
 
 	RBr = IR_RA;
 	RB = RFV(RBr);
+}
+
+static void vm_step_1_decode_ra_rb_vv(_PASS_VM, _PASS_INST)
+{
+	vm_step_1_decode_ra_zz_zz(vm, inst);
+
+	RBr = IR_RA;
+	RB = RFV(RBr);
+	
+	VV = IR_V16;
 }
 
 /*static void vm_step_1_decode_raea_rb(_PASS_VM, _PASS_INST)

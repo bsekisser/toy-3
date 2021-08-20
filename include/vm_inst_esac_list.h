@@ -13,6 +13,7 @@
 	INST_ESAC(bclr, rd_ra_vv, ALU(bic, _LSL(1, VV), 0)) \
 	INST_ESAC(bset, rd_ra_vv, ALU(orr, _LSL(1, VV), 0)) \
 	INST_ESAC(cmp, ra_rb_zz, ALU(sub, RB, 1)) \
+	INST_ESAC(cmpi, ra_rb_vv, ALU(sub, VV, 1)) \
 	INST_ESAC(com, rd_ra_zz, RD = ~RA) \
 	INST_ESAC(div, rd_ra_rb, ALU(div, RB, 0)) \
 	INST_ESAC(divmod, rdrc_ra_rb, RD = RA / RB; RC = RA % RB) \
@@ -64,6 +65,9 @@
 	INST_ESAC(brrle, ra_rb_pcea, BRA_CC(RA <= RB)) \
 	INST_ESAC(brrne, ra_rb_pcea, BRA_CC(RA != RB)) \
 	\
+	INST_ESAC(dbeq, rd_ra_pcea, DBRA_CC(RD == 0)) \
+	INST_ESAC(dbnz, rd_ra_pcea, DBRA_CC((RD > 0) && (RD != 0))) \
+	\
 	INST_ESAC(moveq, rd_ra_rb_rc, MOV_CC(RA == RB, RC)) \
 	INST_ESAC(movgt, rd_ra_rb_rc, MOV_CC(RA > RB, RC)) \
 	INST_ESAC(movge, rd_ra_rb_rc, MOV_CC(RA >= RB, RC)) \
@@ -82,8 +86,8 @@
 	INST_ESAC(enter, xx_xx_xx, PUSH(BP); BP = SP; SP -= IR_V24) \
 	INST_ESAC(leave, xx_xx_xx, SP = BP; BP = POP(); RTS()) \
 	\
-	INST_ESAC(liu, rd_vv_vv, RD = IR_V24) \
-	INST_ESAC(lis, rd_vv_vv, RD = IR_V24s) \
+	INST_ESAC(liu, rd_vv_vv, RD = VV) \
+	INST_ESAC(lis, rd_vv_vv, RD = IR_V20s) \
 	\
 	INST_ESAC(ldb, rd_raea, INST_MA_Ru(sizeof(uint8_t))) \
 	INST_ESAC(ldw, rd_raea, INST_MA_Ru(sizeof(uint16_t))) \

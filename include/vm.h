@@ -86,7 +86,8 @@ enum {
 #define IR_V8	(IR3 & 0x000000ff)
 #define IR_V16	(IR2 & 0x0000ffff)
 #define IR_V16s	((signed)IR >> 16)
-#define IR_V20	(IR2h & 0x000fffff)
+#define IR_V20	(IR1h & 0x000fffff)
+#define IR_V20s ((signed)IR >> 12)
 #define IR_V24	(IR1 & 0x00ffffff)
 #define IR_V24s	((signed)IR >> 8)
 

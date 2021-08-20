@@ -11,13 +11,14 @@
 #include "vm_flags.h"
 
 #include "vm_inst.h"
+#include "vm_inst_names.h"
+
 #include "vm_decode.h"
 
 #include "vm_io.h"
 
-#define TRACE(_f, args...) \
-	printf("%s:(0x%08x, 0x%08x):0x%016llx:: " _f "\n", __FUNCTION__, PC, (PC - (int)&vm->rom), vm->cycle, ##args);
-	
+#include "vm_trace.h"
+
 #undef INST_ESAC
 #define INST_ESAC(_esac, _fn, _action) \
 	static void vm_step_2_execute_##_esac(_PASS_VM, _PASS_INST) \
@@ -36,6 +37,8 @@ static execute_fn_t vm_step_2_execute_fn[] = {
 };
 
 #undef INST_ESAC
+
+/* **** */
 
 static vm_p vm_alloc(vm_h h2vm)
 {
@@ -59,14 +62,19 @@ void vm_reset(_PASS_VM)
 
 static int vm_step_0_fetch(_PASS_VM, _PASS_INST)
 {
-	IR = *pPC++;
+	IR = *(IP = pPC++);
+	
+	uint32_t trip = IP - (uint32_t*)&vm->rom;
 
-	TRACE("IP = (0x%08x, 0x%08x), IR = 0x%08x", ((int)IP - (int)&vm->rom), (int)IP, IR);
+	TRACE("IP = (0x%08x, 0x%08x), IR = 0x%08x, OP = (0x%03x, %10s), ARG = 0x%08x",
+		(int)IP, trip, IR,
+		IR_OP, _inst_esac_name_list[IR_OP],
+		IR_V24);
 
 	inst->decode_fn = vm_step_1_decode_fn[IR_OP];
 	inst->execute_fn = vm_step_2_execute_fn[IR_OP];
 
-	TRACE("IP = 0x%08x, IR = 0x%08x", (int)IP, IR);
+//	TRACE("IP = 0x%08x, IR = 0x%08x", (int)IP, IR);
 	
 	return(inst->decode_fn && inst->execute_fn);
 }
@@ -142,6 +150,7 @@ static void vm_step_3_io_memory_access(_PASS_VM, _PASS_INST)
 	else
 		return;
 
+	MA.rw = 0;
 	vm->cycle++;
 }
 
@@ -149,12 +158,14 @@ static void vm_step_4_writeback_register(_PASS_VM, _PASS_INST)
 {
 	if(WBc) /* writeback -- c */
 	{
+		WBc = 0;
 		TRACE("WBc -- r%0u == 0x%08x", RCr, RC);
 		RFV(RCr) = RC;
 	}
 
 	if(WBd) /* writeback -- d */
 	{
+		WBd = 0;
 		TRACE("WBd -- r%0u == 0x%08x", RDr, RD);
 		RFV(RDr) = RD;
 	}
@@ -172,52 +183,14 @@ int vm_step(_PASS_VM)
 		inst->execute_fn(vm, inst);
 		vm_step_3_io_memory_access(vm, inst);
 		vm_step_4_writeback_register(vm, inst);
-		
-		return(1);
 	}
+	else
+		return(-1);
 
 	vm->cycle++;
-
+	
 	return(0);
 }
-
-#define cc_x32(_x) \
-	({ \
-		TRACE("0x%08x", _x); \
-		*CS(PC, 0, 1) = _x; \
-	})
-
-#define cc_inst(_inst_) \
-	_inst_esac_##_inst_##_k
-
-#define cc_ia(_inst_, _arg) \
-	({ \
-		uint32_t ia = (cc_inst(_inst_) & 0xff) | (((_arg) & 0x00ffffff) << 8); \
-		TRACE("(op = (0x%08x, %s), arg = 0x%08x) --> 0x%08x", \
-			cc_inst(_inst_), #_inst_, _arg, ia); \
-		cc_x32(ia); \
-	})
-
-#define cc_ia_rel(_inst, _pat) \
-	cc_ia(_inst, (signed)_pat - (PC + 4))
-
-#define CS(_x, _pre, _post) \
-	({ \
-		uint32_t** tmp = (uint32_t**)&_x; \
-		*tmp += _pre; \
-		uint32_t* rval = *tmp; \
-		*tmp += _post; \
-		rval; \
-	})
-
-#define SS(_x) \
-	*(uint32_t*)_x
-
-#define pop() \
-	SS(SP++)
-
-#define push(_x) \
-	SS(--SP) = _x	
 
 int main(void)
 {
@@ -226,15 +199,11 @@ int main(void)
 	vm_alloc(&vm);	
 	vm_reset(vm);
 
-	uint32_t* ip;
-
-	push(PC);
-		cc_ia(nop, 0);
-		cc_ia_rel(bra, pop());
+	pseudo_cc_init(vm);
 
 	vm_reset(vm);
 
-	for(int i = 0; i < 15; i++)
+	for(int i = 34; i > 0; i--)
 		vm_step(vm);
 
 	return(0);
