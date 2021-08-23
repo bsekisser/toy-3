@@ -68,8 +68,6 @@
 
 void pseudo_cc_init(_PASS_VM)
 {
-	uint32_t* ip;
-
 	cc_op_rd_vv_vv(liu, 0, 15);
 	push(PC);
 //		cc_op_rd_ra_vv(subi, 0, 0, 1);

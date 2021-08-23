@@ -6,7 +6,7 @@
 
 #define DBRA_CC(_x) \
 	({ \
-		RD = --RA; \
+		RD = RA; RD--; \
 		BRA_CC(_x); \
 	})
 
@@ -88,16 +88,12 @@ static void alu(_PASS_VM, _PASS_INST, uint8_t operation, uint32_t rbvv, int set_
 			case	_inst_esac_adc_k:
 				alu_flag_fn_add(vm, RD, RA, rbvv);
 				break;
-			case	_inst_esac_and_k:
-			case	_inst_esac_bic_k:
-			case	_inst_esac_eor_k:
-			case	_inst_esac_orr_k:
-				alu_flag_fn_nz(vm, RD);
-				break;
 			case	_inst_esac_sub_k:
 			case	_inst_esac_sbc_k:
 				alu_flag_fn_sub(vm, RD, RA, rbvv);
 				break;
+			default:
+				alu_flag_fn_nz(vm, RD);
 		}
 	}
 }

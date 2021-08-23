@@ -2,15 +2,19 @@
 	INST_ESAC(nop, xx_xx_xx, /* nop */) \
 	\
 	INST_ESAC(add, rd_ra_rb, ALU(add, RB, 0)) \
+	INST_ESAC(adds, rd_ra_rb, ALU(add, RB, 1)) \
 	INST_ESAC(addi, rd_ra_vv, ALU(add, VV, 0)) \
 	INST_ESAC(adc, rd_ra_rb, ALU(adc, RB, 0)) \
+	INST_ESAC(adcs, rd_ra_rb, ALU(adc, RB, 1)) \
 	INST_ESAC(adci, rd_ra_vv, ALU(adc, VV, 0)) \
 	INST_ESAC(and, rd_ra_rb, ALU(and, RB, 0)) \
+	INST_ESAC(ands, rd_ra_rb, ALU(and, RB, 1)) \
 	INST_ESAC(andi, rd_ra_rb, ALU(and, VV, 0)) \
 	INST_ESAC(asr, rd_ra_rb, ALU_SHIFT(asr, RB)) \
 	INST_ESAC(asri, rd_ra_vv, ALU_SHIFT(asr, VV)) \
-	INST_ESAC(bic, rd_ra_rb, ALU(bic, RB, 0)) \
 	INST_ESAC(bclr, rd_ra_vv, ALU(bic, _LSL(1, VV), 0)) \
+	INST_ESAC(bic, rd_ra_rb, ALU(bic, RB, 0)) \
+	INST_ESAC(bmas, rd_ra_rb_rc, ALU(bmas, RB, 0)) \
 	INST_ESAC(bset, rd_ra_vv, ALU(orr, _LSL(1, VV), 0)) \
 	INST_ESAC(cmp, ra_rb_zz, ALU(sub, RB, 1)) \
 	INST_ESAC(cmpi, ra_rb_vv, ALU(sub, VV, 1)) \

@@ -3,6 +3,7 @@
 	ALU_ESAC(adc, RD += (rbvv + CF)) \
 	ALU_ESAC(and, RD &= rbvv) \
 	ALU_ESAC(bic, RD &= ~rbvv) \
+	ALU_ESAC(bmas, RD &= ~rbvv; RD |= RC & rbvv) \
 	ALU_ESAC(div, RD /= rbvv) \
 	ALU_ESAC(eor, RD ^= rbvv) \
 	ALU_ESAC(mod, RD %= rbvv) \

@@ -19,6 +19,8 @@
 
 #include "vm_trace.h"
 
+#include "pseudo_cc_init.h"
+
 #undef INST_ESAC
 #define INST_ESAC(_esac, _fn, _action) \
 	static void vm_step_2_execute_##_esac(_PASS_VM, _PASS_INST) \
