@@ -5,31 +5,43 @@
 #define KHz(_x)		((_x) * 1000UL)
 #define MHz(_x)		KHz(KHz(_x))
 
+#define SPIME 0
+
+#define IR_OP0_BITS 6
+#define IR_OP1_BITS 8
+
+#if SPIME
+	#define IR_REG_BITS 5
+#else
+	#define IR_REG_BITS 4
+#endif
+
 enum {
-		rBP = 0x0b,
+		rGP = 0x1c,
+		rSP = 0x1d,
+#define SP GPR(rSP)
+		rFP = 0x1e,
+		rRA = 0x1f,
+		
+		/* aka */
+		rBP = rFP,
+#define BP GPR(rBP)
+		rLR = rRA,
+#define LR GPR(rLR)
+};
 
-	/*	arm designations */
-		rA1 = 0x00,
-		rA2 = 0x01,
-		rA3 = 0x02,
+enum {
+	rSPR_HI,
+	rSPR_LO,
+	/* **** */
+	rSPR_Q = rSPR_HI,
+};
 
-		rV1 = 0x03,
-		rV2 = 0x04,
-		rV3 = 0x05,
-		rV4 = 0x06,
-		rV5 = 0x07,
-		rV6 = 0x08,
-		rV7 = 0x09,
-		rV8 = 0x0a,
-
-		rFP = 0x0b, /* aka rBP */
-		rIP = 0x0c, /* intra procedure scratch register */
-		rSP = 0x0d,
-		rLR = 0x0e,
-		rPC = 0x0f,
-
-	/* arm aka */
-		rSB = 0x09, /* static base */
+enum {
+	_rRD,
+	_rRA,
+	_rRB,
+	_rRC
 };
 
 /*
@@ -39,66 +51,25 @@ enum {
 	3 -- 4 -- MA -- memory access
 	4 -- 5 -- WB -- writeback
 
-	ea_xx_xx --	eeee eeee | eeee eeee | eeee eeee | oooo oooo
-	rd_ra_ea -- eeee eeee | eeee eeee | a1a1 dddd | oooo oooo
-	rd_ra_rb -- vvvv vvvv | cccc b2b2 | a1a1 dddd | oooo oooo
-	rd_ra_vv -- vvvv vvvv | vvvv vvvv | a1a1 dddd | oooo oooo
-	rd_ra_zz -- xxxx xxxx | xxxx xxxx | a1a1 dddd | oooo oooo
-	rd_vv_vv -- vvvv vvvv | vvvv vvvv | vvvv dddd | oooo oooo
-	rd_zz_zz -- xxxx xxxx | xxxx xxxx | xxxx dddd | oooo oooo
-	ra_zz_zz -- xxxx xxxx | xxxx xxxx | xxxx a1a1 | oooo oooo
-	ra_rb_ea -- eeee eeee | eeee eeee | b2b2 a1a1 | oooo oooo
+	
+	type_pcea			--  eeee eeee | eeee eeee | eeee eeee | eeoo oooo
+	type_rd_ra_i		--	iiii iiii | iiii iiii | aaaa addd | ddoo oooo
+	type_rd_ra_u		--	uuuu uuuu | uuuu uuuu | aaaa addd | ddoo oooo
+	type_rd_ra_rb		--	0000 0000 | 0bbb bbaa | aaa ddddd | oo1o oooo
+	type_rd_ra_rb_rc	--	0000 cccc | cbbb bbaa | aaa ddddd | oo1o oooo
 
-	rd_ra_rb_rc	-- vvvv vvvv | c3c3 b2b2 | a1a1 dddd | oooo oooo
-	rdrc_ra_rb	-- vvvv vvvv | c3c3 b2b2 | a1a1 dddd | oooo oooo
 
-	rdea_ma_ra	-- eeee eeee | eeee eeee | a1a1 dddd | oooo oooo
-	rdea_io_ra	-- eeee eeee | eeee eeee | a1a1 dddd | oooo oooo
-
-	a1 -- src reg
-	b2 -- src2 reg
-	c3 -- src3 reg
+	a -- src reg
+	b -- src2 reg
+	c -- src3 reg
 	d -- dest reg
 	e -- effective address offset
+	f -- set flags
+	i -- signed value
+	u -- unsigned value
 	o -- opcode
-	v -- signed / unsigned immediate value
-	x,z -- dont care
-
-	cccc -- zf of nf cf
 
 */
-
-#define IR0		(IR)
-#define IR1		(IR >> 8)
-#define IR1h	(IR >> 12)
-#define IR2		(IR >> 16)
-#define IR2h	(IR >> 20)
-#define IR3		(IR >> 24)
-
-#define IR_OP	(IR0 & 0xff)
-
-#define IR_CC	(IR2h & 0x0f)
-#define IR_RD	(IR1 & 0x0f)
-#define IR_RA	(IR1h & 0x0f)
-#define IR_RB	(IR2 & 0x0f)
-#define IR_RC	(IR_CC)
-
-#define IR_V8	(IR3 & 0x000000ff)
-#define IR_V16	(IR2 & 0x0000ffff)
-#define IR_V16s	((signed)IR >> 16)
-#define IR_V20	(IR1h & 0x000fffff)
-#define IR_V20s ((signed)IR >> 12)
-#define IR_V24	(IR1 & 0x00ffffff)
-#define IR_V24s	((signed)IR >> 8)
-
-#define R(_x) inst->rr[_x]
-#define RFV(_x) vm->rf[_x]
-#define V(_x) inst->rv[_x]
-
-#define MAio MA.io;
-
-#define WBc WB.c
-#define WBd WB.d
 
 enum {
 	/* condition code flags */
@@ -129,31 +100,11 @@ enum {
 #define OVF			(!!(PSR & PSR_OVF))
 #define ZF			(!!(PSR & PSR_ZF))
 
-#define EA inst->ea
-#define IP inst->ip
-#define IR inst->ir
-#define MA inst->ma
-#define WB inst->wb
-#define VV inst->vv
-
-#define BP RFV(rBP)
-#define LR RFV(rLR)
-#define PC RFV(rPC)
-#define PSR vm->psr
-#define SP RFV(rSP)
-
-#define pPC (*vm->pc)
-#define pSP (*vm->sp)
-
-#define RD V(0)
-#define RA V(1)
-#define RB V(2)
-#define RC V(3)
-
-#define RDr R(0)
-#define RAr R(1)
-#define RBr R(2)
-#define RCr R(3)
+#define IR_OP		(IR & _BM(IR_OP_BITS))
+#define IR_OP_BITS	IR_OP1_BITS
+//#define IR_OP_BITS	((SPIME || BEXT(IR, IR_OP0_BITS)) ? IR_OP0_BITS : IR_OP1_BITS)
+#define IR_ARG		_ASR(IR, IR_OP_BITS)
+#define IR_LUI		(IR & ~_BM(16))
 
 typedef struct trap_table_t {
 	union {
@@ -177,41 +128,39 @@ typedef struct vm_ixr_t* vm_ixr_p;
 #define IF_INST(_x) _x
 #define _PASS_INST vm_ixr_p inst
 
-typedef void (*decode_fn_t)(_PASS_VM, _PASS_INST);
-typedef void (*execute_fn_t)(_PASS_VM, _PASS_INST);
-
+typedef void (**vm_fn_p)(_PASS_VM, _PASS_INST);
+typedef void (*vm_fn_t)(_PASS_VM, _PASS_INST);
 
 typedef struct vm_ixr_t {
 //		vm_p				vm;
 
 		uint8_t				rr[4];
+#define rR(_x) inst->rr[_rR##_x]
 		uint32_t			rv[4];
+#define vR(_x) inst->rv[_rR##_x]
+#define SA vR(C)
 
 		uint32_t*			ip;
+#define IP inst->ip
 		uint32_t			ir;
+#define IR inst->ir
 
-		decode_fn_t			decode_fn;
-		execute_fn_t		execute_fn;
-
-		uint8_t				cc;
+		vm_fn_p				step_next;
+		vm_fn_p				step_fn_list;
 
 		union {
 			uint32_t		ea;
+#define EA inst->ea
 
 			uint32_t		vv;
+#define VV inst->vv
 		};
 
 		struct {					/* memory access */
-			uint8_t			io:1;
 			uint8_t			is_signed:1;
-			uint8_t			rw;
 			uint8_t			size;
 		}ma;
-		
-		struct {					/* writeback */
-			uint8_t			c:1;
-			uint8_t			d:1;
-		}wb;
+#define MA inst->ma
 }vm_ixr_t;
 
 #define VM_NVRAM_ALLOC		256
@@ -230,13 +179,35 @@ typedef struct vm_ixr_t {
 typedef struct vm_t {
 	vm_ixr_t				inst;
 
-	uint32_t				rf[16];
-	uint32_t**				pc;
+	uint32_t				gpr[_BV(IR_REG_BITS)];
+#define GPR(_x)				vm->gpr[_x & _BM(IR_REG_BITS)]
+
+	uint32_t				pc;
+#define PC					vm->pc
+
+	uint32_t**				ppc;
+#define pPC					(*vm->ppc)
+
+	union {
+		uint32_t			spr[_BV(IR_REG_BITS)];
+#define SPR(_x)				vm->spr[_x & _BM(IR_REG_BITS)]
+		uint64_t			spr_q[_BV(IR_REG_BITS - 1)];
+#define SPR_Q(_x)			vm->spr_q[_x & _BM(IR_REG_BITS - 1)]
+
+#define rSPR(_x) rSPR_##_x
+
+#define HI SPR(rSPR(HI))
+#define LO SPR(rSPR(LO))
+#define Q SPR(rSPR(Q))
+	};
+
 	uint32_t**				sp;
+#define pSP					(*vm->sp)
 	
 	uint64_t				cycle;
 
 	uint32_t				psr;
+#define PSR vm->psr
 	
 	uint8_t					sdram[VM_SDRAM_ALLOC];
 	uint8_t					nvram[VM_NVRAM_ALLOC];

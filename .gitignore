@@ -1,7 +1,9 @@
 *.a
 *.dump
 *.geany
+*.i
 *.o
 *.out
+*.s
 archive/private*
 build*

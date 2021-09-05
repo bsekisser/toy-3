@@ -1,40 +1,65 @@
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#define IF_PIPELINE(_iff, _action) \
+	if(_iff) ({ _action; })
+
+#define TAILCALL_NEXT() \
+	({ \
+		if(inst->step_next) { \
+			vm_fn_t fn = *inst->step_next; \
+			inst->step_next++; \
+			return(fn(vm, inst)); \
+		} \
+	})
+
+#define IF_THREADED_DISPATCH(_iff, _action) \
+	if(_iff) ({ _action; })
+
+#define _TRACE_DECODE 1
+#define _TRACE_EXECUTE 1
+#define _TRACE_MEM 1
+#define _TRACE_WRITEBACK 1
 
 #include "bitfield.h"
 #include "min_max.h"
 #include "shift_roll.h"
 
 #include "vm.h"
+#include "vm_trace.h"
 
 #include "vm_flags.h"
 
 #include "vm_inst.h"
 #include "vm_inst_names.h"
 
-#include "vm_decode.h"
-
 #include "vm_io.h"
-
-#include "vm_trace.h"
 
 #include "pseudo_cc_init.h"
 
-#undef INST_ESAC
-#define INST_ESAC(_esac, _fn, _action) \
-	static void vm_step_2_execute_##_esac(_PASS_VM, _PASS_INST) \
-	{ \
-		_action; \
-	}
-
-INST_ESAC_LIST
+#include "vm_step_4_writeback.h"
+#include "vm_step_3_mem.h"
+#include "vm_step_1_decode.h"
+#include "vm_step_2_execute.h"
 
 #undef INST_ESAC
-#define INST_ESAC(_esac, _fn, _action) \
-	vm_step_2_execute_##_esac,
+#define INST_ESAC(_esac, _decode, _action, _mem, _wb) \
+		[_inst_esac_##_esac##_k] = { vm_step_1_decode_##_decode, \
+		vm_step_2_execute_##_esac, \
+		vm_step_3_##_mem, \
+		vm_step_4_writeback_##_wb, },
 
-static execute_fn_t vm_step_2_execute_fn[] = {
+typedef struct vm_inst_fn_t* vm_inst_fn_p;
+typedef struct vm_inst_fn_t {
+	vm_fn_t		decode;
+	vm_fn_t		execute;
+	vm_fn_t		mem;
+	vm_fn_t		wb;
+}vm_inst_fn_t;
+
+static vm_inst_fn_t vm_step_inst[256] = {
 	INST_ESAC_LIST
 };
 
@@ -51,8 +76,8 @@ static vm_p vm_alloc(vm_h h2vm)
 
 void vm_reset(_PASS_VM)
 {
-	vm->pc = (uint32_t**)&RFV(rPC);
-	vm->sp = (uint32_t**)&RFV(rSP);
+	vm->ppc = (uint32_t**)&vm->pc;
+	vm->sp = (uint32_t**)&GPR(rSP);
 	
 	pPC = (uint32_t*)&vm->rom[0];
 	pSP = (uint32_t*)&vm->sdram[VM_SDRAM_ALLOC];
@@ -68,127 +93,34 @@ static int vm_step_0_fetch(_PASS_VM, _PASS_INST)
 	
 	uint32_t trip = IP - (uint32_t*)&vm->rom;
 
-	TRACE("IP = (0x%08x, 0x%08x), IR = 0x%08x, OP = (0x%03x, %10s), ARG = 0x%08x",
+	if(1) TRACE("IP = (0x%08x, 0x%08x), IR = 0x%08x, OP = (0x%03x, %10s), ARG = 0x%08x",
 		(int)IP, trip, IR,
 		IR_OP, _inst_esac_name_list[IR_OP],
-		IR_V24);
+		IR_ARG);
 
-	inst->decode_fn = vm_step_1_decode_fn[IR_OP];
-	inst->execute_fn = vm_step_2_execute_fn[IR_OP];
+	vm_inst_fn_p vmifp = &vm_step_inst[IR_OP];
 
-//	TRACE("IP = 0x%08x, IR = 0x%08x", (int)IP, IR);
+	inst->step_fn_list = (vm_fn_p)vmifp;
+	inst->step_next = inst->step_fn_list;
 	
-	return(inst->decode_fn && inst->execute_fn);
-}
-
-static void _vm_step_3_io_memory_access_read(_PASS_VM, _PASS_INST)
-{
-	TRACE();
-
-	if(!MA.io)
+	if(vmifp)
 	{
-		switch(MA.size)
-		{
-			case sizeof(uint8_t):
-				RD = MA.is_signed ? *(int8_t*)EA : *(uint8_t*)EA;
-				break;
-			case sizeof(uint16_t):
-				RD = MA.is_signed ? *(int16_t*)EA : *(uint16_t*)EA;
-				break;
-			default:
-				RD = *(uint32_t*)EA;
-				break;
-		}
-	}
-	else
-	{
-		uint32_t data;
-		
-		data = io_read(vm, EA, MA.size);
-
-		switch(MA.size)
-		{
-			case sizeof(uint8_t):
-				RD = MA.is_signed ? (int8_t)data : (uint8_t)data;
-				break;
-			case sizeof(uint16_t):
-				RD = MA.is_signed ? (int16_t)data : (uint16_t)data;
-				break;
-			default:
-				RD = data;
-		}
-	}
-}
-
-static void _vm_step_3_io_memory_access_write(_PASS_VM, _PASS_INST)
-{
-	TRACE();
-
-	if(!MA.io)
-	{
-		switch(MA.size)
-		{
-			case sizeof(uint8_t):
-				*(uint8_t*)EA = RA;
-				break;
-			case sizeof(uint16_t):
-				*(uint16_t*)EA = RA;
-				break;
-			case sizeof(uint32_t):
-				*(uint32_t*)EA = RA;
-				break;
-		}
-	}
-	else
-		io_write(vm, EA, RA, MA.size);
-}
-
-static void vm_step_3_io_memory_access(_PASS_VM, _PASS_INST)
-{
-	if(MA.rw & 0x01)
-		_vm_step_3_io_memory_access_read(vm, inst);
-	else if(MA.rw & 0x02)
-		_vm_step_3_io_memory_access_write(vm, inst);
-	else
-		return;
-
-	MA.rw = 0;
-	vm->cycle++;
-}
-
-static void vm_step_4_writeback_register(_PASS_VM, _PASS_INST)
-{
-	if(WBc) /* writeback -- c */
-	{
-		WBc = 0;
-		TRACE("WBc -- r%0u == 0x%08x", RCr, RC);
-		RFV(RCr) = RC;
+		IF_PIPELINE(1, vmifp->decode(vm, inst));
+		vmifp->execute(vm, inst);
+		IF_PIPELINE(1, vmifp->mem(vm, inst));
+		IF_PIPELINE(1, vmifp->wb(vm, inst));
 	}
 
-	if(WBd) /* writeback -- d */
-	{
-		WBd = 0;
-		TRACE("WBd -- r%0u == 0x%08x", RDr, RD);
-		RFV(RDr) = RD;
-	}
+	return((int)vmifp);
 }
 
 int vm_step(_PASS_VM)
 {
 	IF_INST(vm_ixr_p) inst = &vm->inst;
 	
-	TRACE();
+//	TRACE();
 	
-	if(vm_step_0_fetch(vm, inst))
-	{
-		inst->decode_fn(vm, inst);
-		inst->execute_fn(vm, inst);
-		vm_step_3_io_memory_access(vm, inst);
-		vm_step_4_writeback_register(vm, inst);
-	}
-	else
-		return(-1);
-
+	vm_step_0_fetch(vm, inst);
 	vm->cycle++;
 	
 	return(0);
@@ -196,16 +128,48 @@ int vm_step(_PASS_VM)
 
 int main(void)
 {
+	printf("_inst_esac0_count = 0x%08x\n", _inst_esac0_count_k);
+	printf("_inst_esac0_limit = 0x%08x\n", _inst_esac0_limit_k);
+	printf("_inst_esac0_free  = 0x%08x\n", _inst_esac0_free_k);
+	printf("\n");
+	printf("_inst_esac1_start = 0x%08x\n", _inst_esac1_start_k);
+	printf("_inst_esac1_end   = 0x%08x\n", _inst_esac1_end_k);
+	printf("_inst_esac1_count = 0x%08x\n", _inst_esac1_count_k);
+	printf("_inst_esac1_limit = 0x%08x\n", _inst_esac1_limit_k);
+	printf("_inst_esac1_free  = 0x%08x\n", _inst_esac1_free_k);
+	printf("\n");
+	printf("_inst_esac_total  = 0x%08x\n", _inst_esac_total_k);
+
 	vm_p vm;
 
 	vm_alloc(&vm);	
+
+	if(1)
+	{
+		printf("\n");
+
+		vm_ixr_p inst = &vm->inst;
+
+		IR = _inst_esac0_limit_k;
+		printf("IR = 0x%08x -- IR_OP = 0x%08x, bits = 0x%02x\n", IR, IR_OP, IR_OP_BITS);
+		
+		IR = _inst_esac1_start_k;
+		printf("IR = 0x%08x -- IR_OP = 0x%08x, bits = 0x%02x\n", IR, IR_OP, IR_OP_BITS);
+
+		IR = _BV(IR_OP0_BITS - 1);
+		printf("IR = 0x%08x -- IR_OP = 0x%08x, bits = 0x%02x\n", IR, IR_OP, IR_OP_BITS);
+
+		printf("\n");
+	}
+
 	vm_reset(vm);
 
 	pseudo_cc_init(vm);
 
 	vm_reset(vm);
 
-	for(int i = 34; i > 0; i--)
+	int step_count = 0 ? MHz(100) :  16;
+	for(int i = step_count; i > 0; i--)
 		vm_step(vm);
 
 	return(0);

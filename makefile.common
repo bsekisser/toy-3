@@ -1,7 +1,7 @@
 #BUILD := build-$(shell $(CC) -dumpmachine)
 CFLAGS = -g -Wall -Os -march=native $(INCLUDE)
 CFLAGS += -MD -MP
-
+CFLAGS += -save-temps
 
 $(BUILD):
 	-mkdir -p $(BUILD)
