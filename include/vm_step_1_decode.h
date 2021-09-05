@@ -2,7 +2,7 @@
 
 #define TRACE_DECODE(_level, _f, args...) \
 	({ \
-		if(TRACE_DECODE_LEVEL >= _level) \
+		if(_TRACE_DECODE && (TRACE_DECODE_LEVEL >= _level)) \
 		{ \
 			TRACE(_f, ##args); \
 		}\
@@ -142,7 +142,7 @@ static void _decode_op_rd_ra_rb(_PASS_VM, _PASS_INST, int32_t* opcode, uint8_t *
 
 static void vm_step_1_decode_nop(_PASS_VM, _PASS_INST)
 {
-	IF_THREADED_DISPATCH(0, /* nop */);
+	TAILCALL_NEXT();
 }
 
 static void vm_step_1_decode_type_pcea(_PASS_VM, _PASS_INST)
@@ -156,7 +156,7 @@ static void vm_step_1_decode_type_pcea(_PASS_VM, _PASS_INST)
 		
 	TRACE_DECODE(1, "0x%08x[rPC] = 0x%08x", opcode, EA);
 
-	IF_THREADED_DISPATCH(0, /* nop */);
+	TAILCALL_NEXT();
 }
 
 static void vm_step_1_decode_type_ra(_PASS_VM, _PASS_INST)
@@ -168,7 +168,7 @@ static void vm_step_1_decode_type_ra(_PASS_VM, _PASS_INST)
 
 	TRACE_DECODE(1, "rA = 0x%02x", rR(A));
 	
-	IF_THREADED_DISPATCH(0, /* nop */);
+	TAILCALL_NEXT();
 }
 
 static void vm_step_1_decode_type_ra_b(_PASS_VM, _PASS_INST)
@@ -181,7 +181,7 @@ static void vm_step_1_decode_type_ra_b(_PASS_VM, _PASS_INST)
 
 	TRACE_DECODE(1, "rA = 0x%02x, B = 0x%02x", rR(A), rR(B));
 
-	IF_THREADED_DISPATCH(0, /* nop */);
+	TAILCALL_NEXT();
 }
 
 static void vm_step_1_decode_type_ra_rb(_PASS_VM, _PASS_INST)
@@ -197,7 +197,7 @@ static void vm_step_1_decode_type_ra_rb(_PASS_VM, _PASS_INST)
 
 	TRACE_DECODE(1, "VV = 0x%08x", VV);
 
-	IF_THREADED_DISPATCH(0, /* nop */);
+	TAILCALL_NEXT();
 }
 
 static void vm_step_1_decode_type_ra_rb_pcea(_PASS_VM, _PASS_INST)
@@ -213,7 +213,7 @@ static void vm_step_1_decode_type_ra_rb_pcea(_PASS_VM, _PASS_INST)
 
 	TRACE_DECODE(1, "EA = 0x%08x", EA);
 
-	IF_THREADED_DISPATCH(0, /* nop */);
+	TAILCALL_NEXT();
 }
 
 static void vm_step_1_decode_type_rd(_PASS_VM, _PASS_INST)
@@ -225,7 +225,7 @@ static void vm_step_1_decode_type_rd(_PASS_VM, _PASS_INST)
 
 	TRACE_DECODE(1, "rD = 0x%02x", rR(D));
 
-	IF_THREADED_DISPATCH(0, /* nop */);
+	TAILCALL_NEXT();
 }
 
 static void vm_step_1_decode_type_rd_a(_PASS_VM, _PASS_INST)
@@ -238,7 +238,7 @@ static void vm_step_1_decode_type_rd_a(_PASS_VM, _PASS_INST)
 
 	TRACE_DECODE(1, "rD = 0x%02x, A = 0x%02x", rR(D), rR(A));
 
-	IF_THREADED_DISPATCH(0, /* nop */);
+	TAILCALL_NEXT();
 }
 
 static void vm_step_1_decode_type_rd_ra(_PASS_VM, _PASS_INST)
@@ -250,7 +250,7 @@ static void vm_step_1_decode_type_rd_ra(_PASS_VM, _PASS_INST)
 
 	TRACE_DECODE(1, "rD = 0x%02x, rA = 0x%02x", rR(D), rR(A));
 
-	IF_THREADED_DISPATCH(0, /* nop */);
+	TAILCALL_NEXT();
 }
 
 static void vm_step_1_decode_type_rd_ra_pcea(_PASS_VM, _PASS_INST)
@@ -266,7 +266,7 @@ static void vm_step_1_decode_type_rd_ra_pcea(_PASS_VM, _PASS_INST)
 
 	TRACE_DECODE(1, "EA = 0x%08x", EA);
 
-	IF_THREADED_DISPATCH(0, /* nop */);
+	TAILCALL_NEXT();
 }
 
 static void vm_step_1_decode_type_rd_ra_i(_PASS_VM, _PASS_INST)
@@ -282,7 +282,7 @@ static void vm_step_1_decode_type_rd_ra_i(_PASS_VM, _PASS_INST)
 
 	TRACE_DECODE(1, "VV = 0x%08x", VV);
 
-	IF_THREADED_DISPATCH(0, /* nop */);
+	TAILCALL_NEXT();
 }
 
 /*static void vm_step_1_decode_type_rd_ra_u(_PASS_VM, _PASS_INST)
@@ -296,7 +296,7 @@ static void vm_step_1_decode_type_rd_ra_i(_PASS_VM, _PASS_INST)
 
 	VV = opcode & 0xffff;
 
-	IF_THREADED_DISPATCH(0, NOP());
+	TAILCALL_NEXT();
 }*/
 
 static void vm_step_1_decode_type_rd_ra_rb(_PASS_VM, _PASS_INST)
@@ -313,7 +313,7 @@ static void vm_step_1_decode_type_rd_ra_rb(_PASS_VM, _PASS_INST)
 
 	TRACE_DECODE(1, "VV = 0x%08x", VV);
 
-	IF_THREADED_DISPATCH(0, /* nop */);
+	TAILCALL_NEXT();
 }
 
 static void vm_step_1_decode_type_rd_ra_rb_rc(_PASS_VM, _PASS_INST)
@@ -331,7 +331,7 @@ static void vm_step_1_decode_type_rd_ra_rb_rc(_PASS_VM, _PASS_INST)
 
 	TRACE_DECODE(1, "VV = 0x%08x", VV);
 
-	IF_THREADED_DISPATCH(0, /* nop */);
+	TAILCALL_NEXT();
 }
 
 static void vm_step_1_decode_type_rd_ra_rbsa(_PASS_VM, _PASS_INST)
@@ -347,7 +347,7 @@ static void vm_step_1_decode_type_rd_ra_rbsa(_PASS_VM, _PASS_INST)
 
 	TRACE_DECODE(1, "SA = 0x%08x", SA);
 
-	IF_THREADED_DISPATCH(0, /* nop */);
+	TAILCALL_NEXT();
 }
 
 static void vm_step_1_decode_type_rd_raea(_PASS_VM, _PASS_INST)
@@ -368,7 +368,7 @@ static void vm_step_1_decode_type_rd_raea(_PASS_VM, _PASS_INST)
 
 	TRACE_DECODE(1, "0x%08x[%s] = 0x%08x", opcode, rR(A) ? "rA" : "rSP", EA);
 
-	IF_THREADED_DISPATCH(0, /* nop */);
+	TAILCALL_NEXT();
 }
 
 static void vm_step_1_decode_type_rdea_ra(_PASS_VM, _PASS_INST)
@@ -391,7 +391,7 @@ static void vm_step_1_decode_type_rdea_ra(_PASS_VM, _PASS_INST)
 
 	TRACE_DECODE(1, "0x%08x[%s] = 0x%08x", opcode, rR(D) ? "rD" : "rSP", EA);
 
-	IF_THREADED_DISPATCH(0, /* nop */);
+	TAILCALL_NEXT();
 }
 
 static void vm_step_1_decode_type_u(_PASS_VM, _PASS_INST)
@@ -403,5 +403,5 @@ static void vm_step_1_decode_type_u(_PASS_VM, _PASS_INST)
 
 	VV = opcode;
 		
-	IF_THREADED_DISPATCH(0, /* nop */);
+	TAILCALL_NEXT();
 }

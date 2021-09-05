@@ -7,6 +7,8 @@
 static void vm_step_4_writeback_nop(_PASS_VM, _PASS_INST)
 {
 	TRACE_WB();
+
+//	TAILCALL_NEXT();
 }
 
 static void vm_step_4_writeback_wb_rd(_PASS_VM, _PASS_INST)
@@ -15,6 +17,8 @@ static void vm_step_4_writeback_wb_rd(_PASS_VM, _PASS_INST)
 
 	if(rR(D))
 		GPR(rR(D)) = vR(D);
+
+//	TAILCALL_NEXT();
 }
 
 /*static void vm_step_4_writeback_wb_rdrc(_PASS_VM, _PASS_INST)

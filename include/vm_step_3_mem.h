@@ -17,6 +17,8 @@ static void vm_step_3_io_r(_PASS_VM, _PASS_INST)
 	}
 
 	vm->cycle++;
+	
+	TAILCALL_NEXT();
 }
 
 static void vm_step_3_io_w(_PASS_VM, _PASS_INST)
@@ -24,6 +26,8 @@ static void vm_step_3_io_w(_PASS_VM, _PASS_INST)
 	io_write(vm, EA, vR(A), MA.size);
 
 	vm->cycle++;
+
+	TAILCALL_NEXT();
 }
 	
 static void vm_step_3_mem_r(_PASS_VM, _PASS_INST)
@@ -42,6 +46,8 @@ static void vm_step_3_mem_r(_PASS_VM, _PASS_INST)
 	}
 
 	vm->cycle++;
+
+	TAILCALL_NEXT();
 }
 
 static void vm_step_3_mem_w(_PASS_VM, _PASS_INST)
@@ -60,8 +66,11 @@ static void vm_step_3_mem_w(_PASS_VM, _PASS_INST)
 	}
 
 	vm->cycle++;
+
+	TAILCALL_NEXT();
 }
 
 static void vm_step_3_nop(_PASS_VM, _PASS_INST)
 {
+	TAILCALL_NEXT();
 }

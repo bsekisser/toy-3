@@ -43,19 +43,19 @@ static void cc_ia(vm_p vm, uint32_t op, uint32_t arg)
 	uint8_t op_bits = IR_OP_BITS;
 	uint32_t aarg = _lslmor(arg, 0, op_bits);
 	
-	TRACE("op_bits = 0x%02x, aarg = 0x%08x", op_bits, aarg);
+	if(0) TRACE("op_bits = 0x%02x, aarg = 0x%08x", op_bits, aarg);
 	
 	
 	uint32_t ia = _lslmor(arg, op, op_bits);
 
-	TRACE("(op = (0x%03x, %10s), arg = 0x%08x) --> 0x%08x",
+	if(0) TRACE("(op = (0x%03x, %10s), arg = 0x%08x) --> 0x%08x",
 			op, _inst_esac_name_list[op], arg, ia);
 
 	cc_x32(vm, ia);
 
 	op = ia;
 
-	TRACE("0x%08x -- > (op = (0x%03x, %10s), arg = 0x%08x)",
+	if(0) TRACE("0x%08x -- > (op = (0x%03x, %10s), arg = 0x%08x)",
 			IR, IR_OP, _inst_esac_name_list[IR_OP], IR_ARG);
 }
 
@@ -76,7 +76,7 @@ static void cc_op_r(vm_p vm, uint32_t op, uint32_t arg, uint8_t r0)
 {
 	uint32_t aarg = _lslmor(arg, r0, IR_REG_BITS);
 	
-	TRACE("op = 0x%08x, arg = 0x%08x, aarg = 0x%08x, r0 = 0x%02x",	op, arg, aarg, r0);
+	if(0) TRACE("op = 0x%08x, arg = 0x%08x, aarg = 0x%08x, r0 = 0x%02x",	op, arg, aarg, r0);
 
 	cc_ia(vm, op, aarg);
 }
@@ -85,7 +85,7 @@ static void cc_op_r_r(vm_p vm, uint32_t op, uint32_t arg, uint8_t r0, uint8_t r1
 {
 	uint32_t aarg = _lslmor(arg, r1, IR_REG_BITS);
 
-	TRACE("op = 0x%08x, arg = 0x%08x, aarg = 0x%08x, r0 = 0x%02x, r1 = 0x%02x",
+	if(0) TRACE("op = 0x%08x, arg = 0x%08x, aarg = 0x%08x, r0 = 0x%02x, r1 = 0x%02x",
 		op, arg, aarg, r0, r1);
 
 	cc_op_r(vm, op, aarg, r0);
@@ -95,7 +95,7 @@ static void cc_op_r_r_i(vm_p vm, uint32_t op, uint32_t arg, uint8_t r0, uint8_t 
 {
 	uint32_t aarg = _lslmor(arg, i, 16);
 
-	TRACE("op = 0x%08x, arg = 0x%08x, aarg = 0x%08x, r0 = 0x%02x, r1 = 0x%02x, i = 0x%08x",
+	if(0) TRACE("op = 0x%08x, arg = 0x%08x, aarg = 0x%08x, r0 = 0x%02x, r1 = 0x%02x, i = 0x%08x",
 		op, arg, aarg, r0, r1, i);
 
 	cc_op_r_r(vm, op, aarg, r0, r1);
@@ -105,7 +105,7 @@ static void cc_op_r_r_r(vm_p vm, uint32_t op, uint32_t arg, uint8_t r0, uint8_t 
 {
 	uint32_t aarg = _lslmor(arg, r2, IR_REG_BITS);
 
-	TRACE("op = 0x%08x, arg = 0x%08x, aarg = 0x%08x, r0 = 0x%02x, r1 = 0x%02x, r2 = 0x%02x",
+	if(0) TRACE("op = 0x%08x, arg = 0x%08x, aarg = 0x%08x, r0 = 0x%02x, r1 = 0x%02x, r2 = 0x%02x",
 		op, arg, aarg, r0, r1, r2);
 
 	cc_op_r_r(vm, op, aarg, r0, r1);

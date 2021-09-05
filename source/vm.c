@@ -6,7 +6,7 @@
 #define IF_PIPELINE(_iff, _action) \
 	if(_iff) ({ _action; })
 
-#define TAILCALL_NEXT() \
+#define _TAILCALL_NEXT() \
 	({ \
 		if(inst->step_next) { \
 			vm_fn_t fn = *inst->step_next; \
@@ -15,13 +15,18 @@
 		} \
 	})
 
-#define IF_THREADED_DISPATCH(_iff, _action) \
-	if(_iff) ({ _action; })
+#define TAILCALL_NEXT() \
+	IF_THREADED_DISPATCH(1, _TAILCALL_NEXT())
 
-#define _TRACE_DECODE 1
-#define _TRACE_EXECUTE 1
-#define _TRACE_MEM 1
-#define _TRACE_WRITEBACK 1
+#define IF_THREADED_DISPATCH(_iff, _action) \
+	if(!_iff) ({ _action; })
+
+#define _TRACE_ALL 1
+#define _TRACE_DECODE _TRACE_ALL
+#define _TRACE_EXECUTE _TRACE_ALL
+#define _TRACE_FETCH _TRACE_ALL
+#define _TRACE_MEM _TRACE_ALL
+#define _TRACE_WRITEBACK _TRACE_ALL
 
 #include "bitfield.h"
 #include "min_max.h"
@@ -87,13 +92,13 @@ void vm_reset(_PASS_VM)
 	vm->psr = 1 << PSR_BIT_US;
 }
 
-static int vm_step_0_fetch(_PASS_VM, _PASS_INST)
+static void vm_step_0_fetch(_PASS_VM, _PASS_INST)
 {
 	IR = *(IP = pPC++);
 	
 	uint32_t trip = IP - (uint32_t*)&vm->rom;
 
-	if(1) TRACE("IP = (0x%08x, 0x%08x), IR = 0x%08x, OP = (0x%03x, %10s), ARG = 0x%08x",
+	if(_TRACE_FETCH) TRACE("IP = (0x%08x, 0x%08x), IR = 0x%08x, OP = (0x%03x, %10s), ARG = 0x%08x",
 		(int)IP, trip, IR,
 		IR_OP, _inst_esac_name_list[IR_OP],
 		IR_ARG);
@@ -105,13 +110,16 @@ static int vm_step_0_fetch(_PASS_VM, _PASS_INST)
 	
 	if(vmifp)
 	{
-		IF_PIPELINE(1, vmifp->decode(vm, inst));
-		vmifp->execute(vm, inst);
-		IF_PIPELINE(1, vmifp->mem(vm, inst));
-		IF_PIPELINE(1, vmifp->wb(vm, inst));
+		IF_THREADED_DISPATCH(1, TAILCALL_NEXT());
+		IF_THREADED_DISPATCH(0, ({
+			IF_PIPELINE(1, vmifp->decode(vm, inst));
+			vmifp->execute(vm, inst);
+			IF_PIPELINE(1, vmifp->mem(vm, inst));
+			IF_PIPELINE(1, vmifp->wb(vm, inst));
+		}));
 	}
 
-	return((int)vmifp);
+//	return((int)vmifp);
 }
 
 int vm_step(_PASS_VM)
@@ -128,24 +136,25 @@ int vm_step(_PASS_VM)
 
 int main(void)
 {
-	printf("_inst_esac0_count = 0x%08x\n", _inst_esac0_count_k);
-	printf("_inst_esac0_limit = 0x%08x\n", _inst_esac0_limit_k);
-	printf("_inst_esac0_free  = 0x%08x\n", _inst_esac0_free_k);
-	printf("\n");
-	printf("_inst_esac1_start = 0x%08x\n", _inst_esac1_start_k);
-	printf("_inst_esac1_end   = 0x%08x\n", _inst_esac1_end_k);
-	printf("_inst_esac1_count = 0x%08x\n", _inst_esac1_count_k);
-	printf("_inst_esac1_limit = 0x%08x\n", _inst_esac1_limit_k);
-	printf("_inst_esac1_free  = 0x%08x\n", _inst_esac1_free_k);
-	printf("\n");
-	printf("_inst_esac_total  = 0x%08x\n", _inst_esac_total_k);
-
 	vm_p vm;
 
 	vm_alloc(&vm);	
+	vm_reset(vm);
 
-	if(1)
+	if(_TRACE_ALL)
 	{
+		printf("_inst_esac0_count = 0x%08x\n", _inst_esac0_count_k);
+		printf("_inst_esac0_limit = 0x%08x\n", _inst_esac0_limit_k);
+		printf("_inst_esac0_free  = 0x%08x\n", _inst_esac0_free_k);
+		printf("\n");
+		printf("_inst_esac1_start = 0x%08x\n", _inst_esac1_start_k);
+		printf("_inst_esac1_end   = 0x%08x\n", _inst_esac1_end_k);
+		printf("_inst_esac1_count = 0x%08x\n", _inst_esac1_count_k);
+		printf("_inst_esac1_limit = 0x%08x\n", _inst_esac1_limit_k);
+		printf("_inst_esac1_free  = 0x%08x\n", _inst_esac1_free_k);
+		printf("\n");
+		printf("_inst_esac_total  = 0x%08x\n", _inst_esac_total_k);
+
 		printf("\n");
 
 		vm_ixr_p inst = &vm->inst;
@@ -161,8 +170,6 @@ int main(void)
 
 		printf("\n");
 	}
-
-	vm_reset(vm);
 
 	pseudo_cc_init(vm);
 
