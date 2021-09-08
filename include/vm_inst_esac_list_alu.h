@@ -75,6 +75,10 @@ static void alu_q(_PASS_VM, _PASS_INST, uint8_t operation)
 #define ALU_I(_esac) \
 	alu(vm, inst, _inst_esac_##_esac##_k, VV, 0)
 
+#define ALU_Iu(_esac) \
+	alu(vm, inst, _inst_esac_##_esac##_k, VV & 0xffff, 0)
+
+
 #define ALU_Q(_esac) \
 	alu_q(vm, inst, _inst_esac_##_esac##_k)
 

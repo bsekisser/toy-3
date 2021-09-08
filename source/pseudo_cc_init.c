@@ -20,7 +20,7 @@ static uint32_t _slif(uint32_t data, uint32_t ins, uint8_t bits)
 
 static uint32_t _pcrel(vm_p vm, int32_t pat)
 {
-	return((pat - (PC + 2)) >> 2);
+	return((pat - (PC + 4)) >> 2);
 }
 
 /* **** */
@@ -91,6 +91,17 @@ static void cc_op_r_r(vm_p vm, uint32_t op, uint32_t arg, uint8_t r0, uint8_t r1
 	cc_op_r(vm, op, aarg, r0);
 }
 
+static void cc_op_r_r_pcrel(vm_p vm, uint32_t op, uint32_t arg, uint8_t r0, uint8_t r1, int32_t pat)
+{
+	int32_t offset = _pcrel(vm, pat);
+	uint32_t aarg = _slif(arg, offset, 16);
+
+	if(1) TRACE("op = 0x%08x, arg = 0x%08x, aarg = 0x%08x, r0 = 0x%02x, r1 = 0x%02x, pat = 0x%08x, offset = 0x%08x",
+		op, arg, aarg, r0, r1, pat, offset);
+
+	cc_op_r_r(vm, op, aarg, r0, r1);
+}
+
 static void cc_op_r_r_i(vm_p vm, uint32_t op, uint32_t arg, uint8_t r0, uint8_t r1, int16_t i)
 {
 	uint32_t aarg = _slif(arg, i, 16);
@@ -113,14 +124,17 @@ static void cc_op_r_r_r(vm_p vm, uint32_t op, uint32_t arg, uint8_t r0, uint8_t 
 
 /* **** */
 
-#define cc_type_b(_op, _paddr) \
-	cc_ia_pcrel(vm, cc_inst(_op), _paddr)
+#define cc_type_b(_op, _pat) \
+	cc_ia_pcrel(vm, cc_inst(_op), _pat)
 
 #define cc_type_i(_op, _d, _a, _i)  \
 	cc_op_r_r_i(vm, cc_inst(_op), 0, _d, _a, _i)
 
 #define cc_type_r(_op, _d, _a, _b) \
 	cc_op_r_r_r(vm, cc_inst(_op), 0, _d, _a, _b)
+
+#define cc_type_r_r_o(_op, _d, _a, _pat) \
+	cc_op_r_r_pcrel(vm, cc_inst(_op), 0, _d, _a, _pat)
 
 /* **** */
 
@@ -132,7 +146,7 @@ void pseudo_cc_init(_PASS_VM)
 	push(PC);
 		cc_type_i(addi, 1, 1, 1);
 		cc_type_i(subi, 2, 2, 1);
-		cc_type_i(dbeq, 1, 1, pop());
+		cc_type_r_r_o(dbeq, 1, 1, pop());
 //		cc_ia(nop, 0);
 //		cc_op_rd_ra_pcea(dbeq, 0, 0, PC + 8);
 		cc_type_b(bra, pop());

@@ -15,12 +15,15 @@
 
 #define INST_ESAC_0_1_LIST \
 	INST_ESAC(addi, type_rd_ra_i, ALU_I(add), nop, wb_rd) \
+	INST_ESAC(addiu, type_rd_ra_i, ALU_Iu(add), nop, wb_rd) \
 	INST_ESAC(adci, type_rd_ra_i, ALU_I(adc), nop, wb_rd) \
-	INST_ESAC(andi, type_rd_ra_i, ALU_I(and), nop, wb_rd) \
-	INST_ESAC(orri, type_rd_ra_i, ALU_I(orr), nop, wb_rd) \
 	INST_ESAC(subi, type_rd_ra_i, ALU_I(sub), nop, wb_rd) \
+	INST_ESAC(subiu, type_rd_ra_i, ALU_Iu(sub), nop, wb_rd) \
 	INST_ESAC(sbci, type_rd_ra_i, ALU_I(sbc), nop, wb_rd) \
-	INST_ESAC(xori, type_rd_ra_i, ALU_I(xor), nop, wb_rd) \
+	\
+	INST_ESAC(andi, type_rd_ra_i, ALU_Iu(and), nop, wb_rd) \
+	INST_ESAC(orri, type_rd_ra_i, ALU_Iu(orr), nop, wb_rd) \
+	INST_ESAC(xori, type_rd_ra_i, ALU_Iu(xor), nop, wb_rd) \
 	\
 	INST_ESAC(bclr, type_rd_ra_i, ALU_RBVV(bic, _LSL(1, VV), 0), nop, wb_rd) \
 	INST_ESAC(bset, type_rd_ra_i, ALU_RBVV(orr, _LSL(1, VV), 0), nop, wb_rd) \
@@ -69,8 +72,8 @@
 	\
 	INST_ESAC(and, type_rd_ra_rb, ALU(and), nop, wb_rd) \
 	INST_ESAC(bic, type_rd_ra_rb, ALU(bic), nop, wb_rd) \
-	INST_ESAC(xor, type_rd_ra_rb, ALU(xor), nop, wb_rd) \
 	INST_ESAC(orr, type_rd_ra_rb, ALU(orr), nop, wb_rd) \
+	INST_ESAC(xor, type_rd_ra_rb, ALU(xor), nop, wb_rd) \
 	\
 	INST_ESAC(asr, type_rd_ra_rbsa, ALU_SHIFT(asr, SA), nop, wb_rd) \
 	INST_ESAC(lsl, type_rd_ra_rbsa, ALU_SHIFT(lsl, SA), nop, wb_rd) \

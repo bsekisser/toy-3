@@ -209,7 +209,7 @@ static void vm_step_1_decode_type_ra_rb_pcea(_PASS_VM, _PASS_INST)
 
 	TRACE_DECODE(1, "rA = 0x%02x, rB = 0x%02x", rR(A), rR(B));
 
-	EA = PC + opcode;
+	EA = PC + (opcode << 2);
 
 	TRACE_DECODE(1, "EA = 0x%08x", EA);
 
@@ -262,7 +262,7 @@ static void vm_step_1_decode_type_rd_ra_pcea(_PASS_VM, _PASS_INST)
 
 	TRACE_DECODE(1, "rD = 0x%02x, rA = 0x%02x", rR(D), rR(A));
 
-	EA = PC + opcode;
+	EA = PC + (opcode << 2);
 
 	TRACE_DECODE(1, "EA = 0x%08x", EA);
 
