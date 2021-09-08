@@ -13,7 +13,7 @@
 
 #include "vm_trace.h"
 
-static uint32_t _lslmor(uint32_t data, uint32_t ins, uint8_t bits) 
+static uint32_t _slif(uint32_t data, uint32_t ins, uint8_t bits) 
 {
 	return((_lsl(data, bits) & ~_BM(bits)) | (ins & _BM(bits)));
 }
@@ -41,12 +41,12 @@ static void cc_x32(vm_p vm, uint32_t data)
 static void cc_ia(vm_p vm, uint32_t op, uint32_t arg)
 {
 	uint8_t op_bits = IR_OP_BITS;
-	uint32_t aarg = _lslmor(arg, 0, op_bits);
+	uint32_t aarg = _slif(arg, 0, op_bits);
 	
 	if(0) TRACE("op_bits = 0x%02x, aarg = 0x%08x", op_bits, aarg);
 	
 	
-	uint32_t ia = _lslmor(arg, op, op_bits);
+	uint32_t ia = _slif(arg, op, op_bits);
 
 	if(0) TRACE("(op = (0x%03x, %10s), arg = 0x%08x) --> 0x%08x",
 			op, _inst_esac_name_list[op], arg, ia);
@@ -74,7 +74,7 @@ static void cc_ia_pcrel(vm_p vm, uint32_t op, int32_t pat)
 
 static void cc_op_r(vm_p vm, uint32_t op, uint32_t arg, uint8_t r0)
 {
-	uint32_t aarg = _lslmor(arg, r0, IR_REG_BITS);
+	uint32_t aarg = _slif(arg, r0, IR_REG_BITS);
 	
 	if(0) TRACE("op = 0x%08x, arg = 0x%08x, aarg = 0x%08x, r0 = 0x%02x",	op, arg, aarg, r0);
 
@@ -83,7 +83,7 @@ static void cc_op_r(vm_p vm, uint32_t op, uint32_t arg, uint8_t r0)
 
 static void cc_op_r_r(vm_p vm, uint32_t op, uint32_t arg, uint8_t r0, uint8_t r1)
 {
-	uint32_t aarg = _lslmor(arg, r1, IR_REG_BITS);
+	uint32_t aarg = _slif(arg, r1, IR_REG_BITS);
 
 	if(0) TRACE("op = 0x%08x, arg = 0x%08x, aarg = 0x%08x, r0 = 0x%02x, r1 = 0x%02x",
 		op, arg, aarg, r0, r1);
@@ -93,7 +93,7 @@ static void cc_op_r_r(vm_p vm, uint32_t op, uint32_t arg, uint8_t r0, uint8_t r1
 
 static void cc_op_r_r_i(vm_p vm, uint32_t op, uint32_t arg, uint8_t r0, uint8_t r1, int16_t i)
 {
-	uint32_t aarg = _lslmor(arg, i, 16);
+	uint32_t aarg = _slif(arg, i, 16);
 
 	if(0) TRACE("op = 0x%08x, arg = 0x%08x, aarg = 0x%08x, r0 = 0x%02x, r1 = 0x%02x, i = 0x%08x",
 		op, arg, aarg, r0, r1, i);
@@ -103,7 +103,7 @@ static void cc_op_r_r_i(vm_p vm, uint32_t op, uint32_t arg, uint8_t r0, uint8_t 
 
 static void cc_op_r_r_r(vm_p vm, uint32_t op, uint32_t arg, uint8_t r0, uint8_t r1, uint8_t r2)
 {
-	uint32_t aarg = _lslmor(arg, r2, IR_REG_BITS);
+	uint32_t aarg = _slif(arg, r2, IR_REG_BITS);
 
 	if(0) TRACE("op = 0x%08x, arg = 0x%08x, aarg = 0x%08x, r0 = 0x%02x, r1 = 0x%02x, r2 = 0x%02x",
 		op, arg, aarg, r0, r1, r2);

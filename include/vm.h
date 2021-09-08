@@ -5,16 +5,10 @@
 #define KHz(_x)		((_x) * 1000UL)
 #define MHz(_x)		KHz(KHz(_x))
 
-#define SPIME 0
-
-#define IR_OP0_BITS 6
-#define IR_OP1_BITS 8
-
-#if SPIME
-	#define IR_REG_BITS 5
-#else
-	#define IR_REG_BITS 4
-#endif
+#define REG_BITS 5
+#define IR_REG_BITS ((IR & 0x80) ? IR_REG1_BITS : IR_REG0_BITS)
+#define IR_REG0_BITS 4
+#define IR_REG1_BITS REG_BITS
 
 enum {
 		rGP = 0x1c,
@@ -100,9 +94,8 @@ enum {
 #define OVF			(!!(PSR & PSR_OVF))
 #define ZF			(!!(PSR & PSR_ZF))
 
-#define IR_OP		(IR & _BM(IR_OP_BITS))
-#define IR_OP_BITS	IR_OP1_BITS
-//#define IR_OP_BITS	((SPIME || BEXT(IR, IR_OP0_BITS)) ? IR_OP0_BITS : IR_OP1_BITS)
+#define IR_OP		(IR & 0xff)
+#define IR_OP_BITS	8
 #define IR_ARG		_ASR(IR, IR_OP_BITS)
 #define IR_LUI		(IR & ~_BM(16))
 
@@ -185,10 +178,10 @@ typedef struct vm_t {
 	uint64_t				cycle;
 
 	union {
-		uint64_t			spr_q[_BV(IR_REG_BITS - 1)];
-#define SPR_Q(_x)			vm->spr_q[_x & _BM(IR_REG_BITS - 1)]
-		uint32_t			spr[_BV(IR_REG_BITS)];
-#define SPR(_x)				vm->spr[_x & _BM(IR_REG_BITS)]
+		uint64_t			spr_q[_BV(REG_BITS - 1)];
+#define SPR_Q(_x)			vm->spr_q[_x & _BM(REG_BITS - 1)]
+		uint32_t			spr[_BV(REG_BITS)];
+#define SPR(_x)				vm->spr[_x & _BM(REG_BITS)]
 
 #define rSPR(_x) rSPR_##_x
 
@@ -197,8 +190,8 @@ typedef struct vm_t {
 #define Q SPR(rSPR(Q))
 	};
 
-	uint32_t				gpr[_BV(IR_REG_BITS)];
-#define GPR(_x)				vm->gpr[_x & _BM(IR_REG_BITS)]
+	uint32_t				gpr[_BV(REG_BITS)];
+#define GPR(_x)				vm->gpr[_x & _BM(REG_BITS)]
 
 	uint32_t				pc;
 #define PC					vm->pc

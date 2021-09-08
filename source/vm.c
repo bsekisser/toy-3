@@ -165,7 +165,7 @@ int main(void)
 		IR = _inst_esac1_start_k;
 		printf("IR = 0x%08x -- IR_OP = 0x%08x, bits = 0x%02x\n", IR, IR_OP, IR_OP_BITS);
 
-		IR = _BV(IR_OP0_BITS - 1);
+		IR = _BV(IR_OP_BITS - 1);
 		printf("IR = 0x%08x -- IR_OP = 0x%08x, bits = 0x%02x\n", IR, IR_OP, IR_OP_BITS);
 
 		printf("\n");
