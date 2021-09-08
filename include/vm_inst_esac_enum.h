@@ -5,7 +5,7 @@
 enum {
 	INST_ESAC_0_LIST
 	_inst_esac0_count_k,
-	_inst_esac0_limit_k = _BM(IR_OP0_BITS),
+	_inst_esac0_limit_k = _BM(IR_OP0_BITS) & ~0xcf,
 	INST_ESAC_1_LIST
 	_inst_esac1_end_k,
 	_inst_esac1_limit_k = _BM(IR_OP1_BITS),

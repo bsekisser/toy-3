@@ -132,6 +132,7 @@ void pseudo_cc_init(_PASS_VM)
 	push(PC);
 		cc_type_i(addi, 1, 1, 1);
 		cc_type_i(subi, 2, 2, 1);
+		cc_type_i(dbeq, 1, 1, pop());
 //		cc_ia(nop, 0);
 //		cc_op_rd_ra_pcea(dbeq, 0, 0, PC + 8);
 		cc_type_b(bra, pop());

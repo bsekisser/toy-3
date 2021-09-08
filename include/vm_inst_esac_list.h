@@ -16,8 +16,11 @@
 #define INST_ESAC_0_1_LIST \
 	INST_ESAC(addi, type_rd_ra_i, ALU_I(add), nop, wb_rd) \
 	INST_ESAC(adci, type_rd_ra_i, ALU_I(adc), nop, wb_rd) \
+	INST_ESAC(andi, type_rd_ra_i, ALU_I(and), nop, wb_rd) \
+	INST_ESAC(orri, type_rd_ra_i, ALU_I(orr), nop, wb_rd) \
 	INST_ESAC(subi, type_rd_ra_i, ALU_I(sub), nop, wb_rd) \
 	INST_ESAC(sbci, type_rd_ra_i, ALU_I(sbc), nop, wb_rd) \
+	INST_ESAC(xori, type_rd_ra_i, ALU_I(xor), nop, wb_rd) \
 	\
 	INST_ESAC(bclr, type_rd_ra_i, ALU_RBVV(bic, _LSL(1, VV), 0), nop, wb_rd) \
 	INST_ESAC(bset, type_rd_ra_i, ALU_RBVV(orr, _LSL(1, VV), 0), nop, wb_rd) \
@@ -53,6 +56,10 @@
 	\
 	INST_ESAC(dbeq, type_rd_ra_pcea, DBRA_CC(vR(D) == 0), nop, wb_rd) \
 	INST_ESAC(dbnz, type_rd_ra_pcea, DBRA_CC((vR(D) > 0) && (vR(D) != 0)), nop, wb_rd)
+
+#define INST_ESAC_0_LIST \
+	INST_ESAC_0_0_LIST \
+	INST_ESAC_0_1_LIST
 
 #define INST_ESAC_1_0_LIST \
 	INST_ESAC(add, type_rd_ra_rb, ALU(add), nop, wb_rd) \
@@ -119,6 +126,12 @@
 	INST_ESAC(movlt, type_rd_ra_rb_rc, RRCC(lt, mov), nop, wb_rd) \
 	INST_ESAC(movne, type_rd_ra_rb_rc, RRCC(ne, mov), nop, wb_rd)
 
+#define INST_ESAC_1_LIST \
+	INST_ESAC_1_0_LIST \
+	INST_ESAC_1_1_LIST \
+	INST_ESAC_1_2_LIST \
+	INST_XXX
+
 /*
  * pseudo operations
  * 
@@ -138,22 +151,15 @@
 	ori rd?, rs0	--	iiii iiii | iiii iiii | aaaa addd | dd00 0000
 */
 
-#define INST_ESAC_0_LIST \
-	INST_ESAC_0_0_LIST \
-	INST_ESAC_0_1_LIST
-
-#define INST_ESAC_1_LIST \
-	INST_ESAC_1_0_LIST \
-	INST_ESAC_1_1_LIST \
-	INST_ESAC_1_2_LIST \
-	INST_XXX
-
 #define INST_ESAC_LIST \
 	INST_ESAC_0_LIST \
 	INST_ESAC_1_LIST
 
 #define INST_XXX \
 	INST_ESAC(bmas, type_rd_ra_rb_rc, ALU(bmas), nop, wb_rd) \
+	\
+	INST_ESAC(ins, type_rd_ra_b_c, vR(D) = _MLBFI(GPR(rR(D)), vR(A), rR(B), rR(C)), nop, wb_rd) \
+	INST_ESAC(ext, type_rd_ra_b_c, vR(D) = _MLBFX(vR(A), rR(B), rR(C)), nop, wb_rd) \
 	\
 	INST_ESAC(rts, nop, RTS(), nop, nop) \
 	INST_ESAC(rti, nop, RTI(), nop, nop) \

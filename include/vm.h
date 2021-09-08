@@ -52,11 +52,11 @@ enum {
 	4 -- 5 -- WB -- writeback
 
 	
-	type_pcea			--  eeee eeee | eeee eeee | eeee eeee | eeoo oooo
-	type_rd_ra_i		--	iiii iiii | iiii iiii | aaaa addd | ddoo oooo
-	type_rd_ra_u		--	uuuu uuuu | uuuu uuuu | aaaa addd | ddoo oooo
-	type_rd_ra_rb		--	0000 0000 | 0bbb bbaa | aaa ddddd | oo1o oooo
-	type_rd_ra_rb_rc	--	0000 cccc | cbbb bbaa | aaa ddddd | oo1o oooo
+	type_pcea			--  eeee eeee | eeee eeee | eeee eeee | 0ooo oooo
+	type_rd_ra_i		--	iiii iiii | iiii iiii | aaaa dddd | 0ooo oooo
+	type_rd_ra_u		--	uuuu uuuu | uuuu uuuu | aaaa dddd | 0ooo oooo
+	type_rd_ra_rb		--	0000 0000 | 0bbb bbaa | aaa ddddd | 1ooo oooo
+	type_rd_ra_rb_rc	--	0000 cccc | cbbb bbaa | aaa ddddd | 1ooo oooo
 
 
 	a -- src reg
@@ -109,8 +109,10 @@ enum {
 typedef struct trap_table_t {
 	union {
 		struct {
-			uint32_t	cold_reset;			//	0004	0000
-			uint32_t	warm_reset;			//	0004	0008
+			uint32_t	cold_reset;
+			uint32_t	warm_reset;
+			uint32_t	vertical_blank;
+			uint32_t	horizontal_blank;
 		};
 		
 		uint32_t	interrupt[16];		//	0064	0072
@@ -134,8 +136,6 @@ typedef void (*vm_fn_t)(_PASS_VM, _PASS_INST);
 typedef struct vm_ixr_t {
 //		vm_p				vm;
 
-		uint8_t				rr[4];
-#define rR(_x) inst->rr[_rR##_x]
 		uint32_t			rv[4];
 #define vR(_x) inst->rv[_rR##_x]
 #define SA vR(C)
@@ -155,6 +155,9 @@ typedef struct vm_ixr_t {
 			uint32_t		vv;
 #define VV inst->vv
 		};
+
+		uint8_t				rr[4];
+#define rR(_x) inst->rr[_rR##_x]
 
 		struct {					/* memory access */
 			uint8_t			is_signed:1;
@@ -179,6 +182,21 @@ typedef struct vm_ixr_t {
 typedef struct vm_t {
 	vm_ixr_t				inst;
 
+	uint64_t				cycle;
+
+	union {
+		uint64_t			spr_q[_BV(IR_REG_BITS - 1)];
+#define SPR_Q(_x)			vm->spr_q[_x & _BM(IR_REG_BITS - 1)]
+		uint32_t			spr[_BV(IR_REG_BITS)];
+#define SPR(_x)				vm->spr[_x & _BM(IR_REG_BITS)]
+
+#define rSPR(_x) rSPR_##_x
+
+#define HI SPR(rSPR(HI))
+#define LO SPR(rSPR(LO))
+#define Q SPR(rSPR(Q))
+	};
+
 	uint32_t				gpr[_BV(IR_REG_BITS)];
 #define GPR(_x)				vm->gpr[_x & _BM(IR_REG_BITS)]
 
@@ -188,24 +206,9 @@ typedef struct vm_t {
 	uint32_t**				ppc;
 #define pPC					(*vm->ppc)
 
-	union {
-		uint32_t			spr[_BV(IR_REG_BITS)];
-#define SPR(_x)				vm->spr[_x & _BM(IR_REG_BITS)]
-		uint64_t			spr_q[_BV(IR_REG_BITS - 1)];
-#define SPR_Q(_x)			vm->spr_q[_x & _BM(IR_REG_BITS - 1)]
-
-#define rSPR(_x) rSPR_##_x
-
-#define HI SPR(rSPR(HI))
-#define LO SPR(rSPR(LO))
-#define Q SPR(rSPR(Q))
-	};
-
 	uint32_t**				sp;
 #define pSP					(*vm->sp)
 	
-	uint64_t				cycle;
-
 	uint32_t				psr;
 #define PSR vm->psr
 	

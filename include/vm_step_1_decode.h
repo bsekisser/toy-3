@@ -269,6 +269,25 @@ static void vm_step_1_decode_type_rd_ra_pcea(_PASS_VM, _PASS_INST)
 	TAILCALL_NEXT();
 }
 
+static void vm_step_1_decode_type_rd_ra_b_c(_PASS_VM, _PASS_INST)
+{
+	uint8_t bits = 0;
+	int32_t opcode = 0;
+
+	_decode_op_rd_ra(vm, inst, &opcode, &bits);
+	_decode__b(vm, inst, &opcode, &bits);
+	_decode__c(vm, inst, &opcode, &bits);
+
+	TRACE_DECODE(1, "rD = 0x%02x, rA = 0x%02x, rB = 0x%02x, rC = 0x%02x",
+		rR(D), rR(A), rR(B), rR(C));
+
+	VV = opcode;
+
+	TRACE_DECODE(1, "VV = 0x%08x", VV);
+
+	TAILCALL_NEXT();
+}
+
 static void vm_step_1_decode_type_rd_ra_i(_PASS_VM, _PASS_INST)
 {
 	uint8_t bits = 0;
