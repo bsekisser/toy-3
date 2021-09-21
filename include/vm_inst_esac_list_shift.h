@@ -1,26 +1,60 @@
 #define SHIFT_ESAC_LIST \
-	SHIFT_ESAC(asr, vR(D) = _asr(vR(A), count)) \
-	SHIFT_ESAC(lsl, vR(D) = _lsl(vR(A), count)) \
-	SHIFT_ESAC(lsr, vR(D) = _lsr(vR(A), count)) \
-	SHIFT_ESAC(rlc, int cout; vR(D) = _rol_c(vR(A), count, CF, &cout); BMAS(PSR, PSR_BIT_CF, cout)) \
-	SHIFT_ESAC(rol, vR(D) = _rol(vR(A), count)) \
-	SHIFT_ESAC(ror, vR(D) = _ror(vR(A), count)) \
-	SHIFT_ESAC(rrc, int cout; vR(D) = _ror_c(vR(A), count, CF, &cout); BMAS(PSR, PSR_BIT_CF, cout))
+	SHIFT_ESAC(asr) \
+	SHIFT_ESAC(lsl) \
+	SHIFT_ESAC(lsr) \
+	SHIFT_ESAC(rol) \
+	SHIFT_ESAC(ror) \
+	SHIFT_ESAC(rlc) \
+	SHIFT_ESAC(rrc)
+
+/* **** */
+
+#define _rlc(_in, _sa) \
+	({ \
+		int cf_out; \
+		uint32_t out = _rol_c(_in, _sa, CF, &cf_out); \
+		BMAS(PSR, PSR_BIT_CF, cf_out); \
+		out; \
+	})
+
+#define _rrc(_in, _sa) \
+	({ \
+		int cf_out; \
+		uint32_t out = _ror_c(_in, _sa, CF, &cf_out); \
+		BMAS(PSR, PSR_BIT_CF, cf_out); \
+		out; \
+	})
+
+/* **** */
+
+#define SHIFT_ENUM(_enum) \
+	_shift_enum_##_enum##_k
+
+#undef SHIFT_ESAC
+#define SHIFT_ESAC(_esac) \
+	SHIFT_ENUM(_esac),
+
+enum {
+	SHIFT_ESAC_LIST
+};
+
+#undef SHIFT_ESAC
 
 /* **** */
 
 #undef SHIFT_ESAC
-#define SHIFT_ESAC(_esac, _action) \
-	static void alu_shift_##_esac(_PASS_VM, _PASS_INST, uint8_t count) \
-	{ \
-		_action; \
+#define SHIFT_ESAC(_esac) \
+	ESAC_ACTION(SHIFT_ENUM(_esac), vR(D) = _##_esac(vR(A), SA))
+
+#define SHIFT(_esac) _shift_box(vm, inst, SHIFT_ENUM(_esac))
+static void _shift_box(_PASS_VM, _PASS_INST, int esac)
+{
+	switch(esac)
+	{
+		SHIFT_ESAC_LIST
 	}
-
-SHIFT_ESAC_LIST
+}
 
 #undef SHIFT_ESAC
 
 /* **** */
-
-#define ALU_SHIFT(_esac, _count) \
-	alu_shift_##_esac(vm, inst, _count)

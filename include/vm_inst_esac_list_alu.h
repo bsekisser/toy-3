@@ -5,10 +5,10 @@
 	ALU_ESAC(sbc, vR(D) -= (rbvv + CF)) \
 	\
 	ALU_ESAC(and, vR(D) &= rbvv) \
-	ALU_ESAC(xor, vR(D) ^= rbvv) \
-	ALU_ESAC(orr, vR(D) |= rbvv) \
-	\
 	ALU_ESAC(bic, vR(D) &= ~rbvv) \
+	ALU_ESAC(orr, vR(D) |= rbvv) \
+	ALU_ESAC(xor, vR(D) ^= rbvv) \
+	\
 	ALU_ESAC(bmas, vR(D) &= ~rbvv; vR(D) |= vR(C) & rbvv) \
 	\
 	ALU_ESAC(div, vR(D) /= rbvv) \
@@ -28,9 +28,7 @@
 	
 #undef ALU_ESAC
 #define ALU_ESAC(_esac, _action) \
-	case	_inst_esac_##_esac##_k: \
-		_action; \
-		break;
+	ESAC_ACTION(INST_ENUM(_esac), _action)
 
 static void alu(_PASS_VM, _PASS_INST, uint8_t operation, uint32_t rbvv, int set_flags)
 {
@@ -45,12 +43,12 @@ static void alu(_PASS_VM, _PASS_INST, uint8_t operation, uint32_t rbvv, int set_
 	{
 		switch(operation)
 		{
-			case	_inst_esac_add_k:
-			case	_inst_esac_adc_k:
+			case	INST_ENUM(add):
+			case	INST_ENUM(adc):
 				alu_flag_fn_add(vm, vR(D), vR(A), rbvv);
 				break;
-			case	_inst_esac_sub_k:
-			case	_inst_esac_sbc_k:
+			case	INST_ENUM(sub):
+			case	INST_ENUM(sbc):
 				alu_flag_fn_sub(vm, vR(D), vR(A), rbvv);
 				break;
 			default:
@@ -70,17 +68,17 @@ static void alu_q(_PASS_VM, _PASS_INST, uint8_t operation)
 #undef ALU_ESAC
 
 #define ALU(_esac) \
-	alu(vm, inst, _inst_esac_##_esac##_k, vR(B), BEXT(IR, 31))
+	alu(vm, inst, INST_ENUM(_esac), vR(B), BEXT(IR, 31))
 
 #define ALU_I(_esac) \
-	alu(vm, inst, _inst_esac_##_esac##_k, VV, 0)
+	alu(vm, inst, INST_ENUM(_esac), VV, 0)
 
 #define ALU_Iu(_esac) \
-	alu(vm, inst, _inst_esac_##_esac##_k, VV & 0xffff, 0)
+	alu(vm, inst, INST_ENUM(_esac), VV & 0xffff, 0)
 
 
 #define ALU_Q(_esac) \
-	alu_q(vm, inst, _inst_esac_##_esac##_k)
+	alu_q(vm, inst, INST_ENUM(_esac))
 
 #define ALU_RBVV(_esac, _rbvv, _set_flags) \
-	alu(vm, inst, _inst_esac_##_esac##_k, _rbvv, _set_flags)
+	alu(vm, inst, INST_ENUM(_esac), _rbvv, _set_flags)

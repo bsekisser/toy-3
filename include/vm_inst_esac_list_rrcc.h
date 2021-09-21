@@ -13,9 +13,7 @@ enum {
 };
 
 #define RRCC_ESAC(_rrcc_cc, _test) \
-	case _rrcc_##_rrcc_cc: \
-		cc_pass = (_test); \
-		break;
+	ESAC_ACTION(_rrcc_##_rrcc_cc, cc_pass = (_test))
 
 static inline void rrcc(_PASS_VM, _PASS_INST, int test, int operation)
 {

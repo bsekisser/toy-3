@@ -10,7 +10,7 @@
 
 #undef INST_ESAC
 #define INST_ESAC(_esac, _decode, _action, _mem, _wb) \
-	[_inst_esac_##_esac##_k] = #_esac,
+	[INST_ENUM(_esac)] = #_esac,
 
 char* _inst_esac_name_list[256] = {
 	INST_ESAC_LIST

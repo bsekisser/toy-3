@@ -1,6 +1,6 @@
 #undef INST_ESAC
 #define INST_ESAC(_esac, _decode, _action, _mem, _wb) \
-	_inst_esac_##_esac##_k,
+	INST_ENUM(_esac),
 
 enum {
 	INST_ESAC_0_LIST

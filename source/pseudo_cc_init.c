@@ -36,7 +36,7 @@ static void cc_x32(vm_p vm, uint32_t data)
 #define IR op
 
 #define cc_inst(_inst_) \
-	_inst_esac_##_inst_##_k
+	INST_ENUM(_inst_)
 
 static void cc_ia(vm_p vm, uint32_t op, uint32_t arg)
 {
@@ -96,7 +96,7 @@ static void cc_op_r_r_pcrel(vm_p vm, uint32_t op, uint32_t arg, uint8_t r0, uint
 	int32_t offset = _pcrel(vm, pat);
 	uint32_t aarg = _slif(arg, offset, 16);
 
-	if(1) TRACE("op = 0x%08x, arg = 0x%08x, aarg = 0x%08x, r0 = 0x%02x, r1 = 0x%02x, pat = 0x%08x, offset = 0x%08x",
+	if(0) TRACE("op = 0x%08x, arg = 0x%08x, aarg = 0x%08x, r0 = 0x%02x, r1 = 0x%02x, pat = 0x%08x, offset = 0x%08x",
 		op, arg, aarg, r0, r1, pat, offset);
 
 	cc_op_r_r(vm, op, aarg, r0, r1);
@@ -142,11 +142,12 @@ void pseudo_cc_init(_PASS_VM)
 {
 	cc_type_r(xor, 1, 0, 0);
 	cc_type_r(xor, 2, 0, 0);
+	cc_type_i(addi, 3, 1, 15);
 	
 	push(PC);
 		cc_type_i(addi, 1, 1, 1);
 		cc_type_i(subi, 2, 2, 1);
-		cc_type_r_r_o(dbeq, 1, 1, pop());
+		cc_type_r_r_o(dbnz, 3, 3, pop());
 //		cc_ia(nop, 0);
 //		cc_op_rd_ra_pcea(dbeq, 0, 0, PC + 8);
 		cc_type_b(bra, pop());

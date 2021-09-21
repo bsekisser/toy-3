@@ -51,10 +51,12 @@
 
 #undef INST_ESAC
 #define INST_ESAC(_esac, _decode, _action, _mem, _wb) \
-		[_inst_esac_##_esac##_k] = { vm_step_1_decode_##_decode, \
+	[INST_ENUM(_esac)] = { \
+		vm_step_1_decode_##_decode, \
 		vm_step_2_execute_##_esac, \
 		vm_step_3_##_mem, \
-		vm_step_4_writeback_##_wb, },
+		vm_step_4_writeback_##_wb, \
+	},
 
 typedef struct vm_inst_fn_t* vm_inst_fn_p;
 typedef struct vm_inst_fn_t {
@@ -175,7 +177,7 @@ int main(void)
 
 	vm_reset(vm);
 
-	int step_count = 0 ? MHz(100) :  16;
+	int step_count = 0 ? MHz(100) :  32;
 	for(int i = step_count; i > 0; i--)
 		vm_step(vm);
 

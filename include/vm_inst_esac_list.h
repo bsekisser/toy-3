@@ -1,3 +1,24 @@
+enum {
+	alu_rd_rs_i,
+	alu_rd_rs_rs,
+	shift_rd_rs_rsa,
+	ld_mem_rd_rsea,
+	st_mem_rdea_rs,
+	ld_io_rd_rsea,
+	st_io_rdea_rs,
+	bra_ea,
+	bra_cc_ea,
+	call_ea,
+};
+
+#define INST_ENUM(_enum) \
+	_inst_enum_##_enum##_k
+
+#define ESAC_ACTION(_esac, _action) \
+	case _esac: \
+		_action; \
+		break;
+
 #define INST_ESAC_0_0_LIST \
 	INST_ESAC(lui, type_rd_ra_i, LUI_ORI_NOP(), nop, wb_rd) \
 	\
@@ -75,14 +96,14 @@
 	INST_ESAC(orr, type_rd_ra_rb, ALU(orr), nop, wb_rd) \
 	INST_ESAC(xor, type_rd_ra_rb, ALU(xor), nop, wb_rd) \
 	\
-	INST_ESAC(asr, type_rd_ra_rbsa, ALU_SHIFT(asr, SA), nop, wb_rd) \
-	INST_ESAC(lsl, type_rd_ra_rbsa, ALU_SHIFT(lsl, SA), nop, wb_rd) \
-	INST_ESAC(lsr, type_rd_ra_rbsa, ALU_SHIFT(lsr, SA), nop, wb_rd) \
+	INST_ESAC(asr, type_rd_ra_rbsa, SHIFT(asr), nop, wb_rd) \
+	INST_ESAC(lsl, type_rd_ra_rbsa, SHIFT(lsl), nop, wb_rd) \
+	INST_ESAC(lsr, type_rd_ra_rbsa, SHIFT(lsr), nop, wb_rd) \
 	\
-	INST_ESAC(rol, type_rd_ra_rbsa, ALU_SHIFT(rol, SA), nop, wb_rd) \
-	INST_ESAC(ror, type_rd_ra_rbsa, ALU_SHIFT(ror, SA), nop, wb_rd) \
-	INST_ESAC(rlc, type_rd_ra_rbsa, ALU_SHIFT(rlc, SA), nop, wb_rd) \
-	INST_ESAC(rrc, type_rd_ra_rbsa, ALU_SHIFT(rrc, SA), nop, wb_rd) \
+	INST_ESAC(rol, type_rd_ra_rbsa, SHIFT(rol), nop, wb_rd) \
+	INST_ESAC(ror, type_rd_ra_rbsa, SHIFT(ror), nop, wb_rd) \
+	INST_ESAC(rlc, type_rd_ra_rbsa, SHIFT(rlc), nop, wb_rd) \
+	INST_ESAC(rrc, type_rd_ra_rbsa, SHIFT(rrc), nop, wb_rd) \
 	\
 	INST_ESAC(enter, type_u, PUSH(BP); BP = SP; SP -= VV, nop, nop)
 
@@ -161,8 +182,8 @@
 #define INST_XXX \
 	INST_ESAC(bmas, type_rd_ra_rb_rc, ALU(bmas), nop, wb_rd) \
 	\
-	INST_ESAC(ins, type_rd_ra_b_c, vR(D) = _MLBFI(GPR(rR(D)), vR(A), rR(B), rR(C)), nop, wb_rd) \
-	INST_ESAC(ext, type_rd_ra_b_c, vR(D) = _MLBFX(vR(A), rR(B), rR(C)), nop, wb_rd) \
+	INST_ESAC(ins, type_rd_ra_b_c, vR(D) = mlBFINS(GPR(rR(D)), vR(A), rR(B), rR(C)), nop, wb_rd) \
+	INST_ESAC(ext, type_rd_ra_b_c, vR(D) = mlBFEXT(vR(A), rR(B), rR(C)), nop, wb_rd) \
 	\
 	INST_ESAC(rts, nop, RTS(), nop, nop) \
 	INST_ESAC(rti, nop, RTI(), nop, nop) \
