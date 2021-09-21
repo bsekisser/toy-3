@@ -49,27 +49,27 @@ enum {
 	INST_ESAC(bclr, type_rd_ra_i, ALU_RBVV(bic, _LSL(1, VV), 0), nop, wb_rd) \
 	INST_ESAC(bset, type_rd_ra_i, ALU_RBVV(orr, _LSL(1, VV), 0), nop, wb_rd) \
 	\
-	INST_ESAC(ldb, type_rd_raea, INST_MA_Ru(sizeof(uint8_t)), mem_r, wb_rd) \
-	INST_ESAC(ldw, type_rd_raea, INST_MA_Ru(sizeof(uint16_t)), mem_r, wb_rd) \
-	INST_ESAC(ldl, type_rd_raea, INST_MA_Ru(sizeof(uint32_t)), mem_r, wb_rd) \
+	INST_ESAC(ldb, type_rd_raea, NOP(), ma_ld8u, wb_rd) \
+	INST_ESAC(ldw, type_rd_raea, NOP(), ma_ld16u, wb_rd) \
+	INST_ESAC(ldl, type_rd_raea, NOP(), ma_ld32, wb_rd) \
 	\
-	INST_ESAC(ldbs, type_rd_raea, INST_MA_Rs(sizeof(int8_t)), mem_r, wb_rd) \
-	INST_ESAC(ldws, type_rd_raea, INST_MA_Rs(sizeof(int16_t)), mem_r, wb_rd) \
+	INST_ESAC(ldbs, type_rd_raea, NOP(), ma_ld8s, wb_rd) \
+	INST_ESAC(ldws, type_rd_raea, NOP(), ma_ld16s, wb_rd) \
 	\
-	INST_ESAC(stb, type_rdea_ra, INST_MA_W(sizeof(uint8_t)), mem_w, nop) \
-	INST_ESAC(stw, type_rdea_ra, INST_MA_W(sizeof(uint16_t)), mem_w, nop) \
-	INST_ESAC(stl, type_rdea_ra, INST_MA_W(sizeof(uint32_t)), mem_w, nop) \
+	INST_ESAC(stb, type_rdea_ra, NOP(), ma_st8, nop) \
+	INST_ESAC(stw, type_rdea_ra, NOP(), ma_st16, nop) \
+	INST_ESAC(stl, type_rdea_ra, NOP(), ma_st32, nop) \
 	\
-	INST_ESAC(iorb, type_rd_raea, INST_IO_Ru(sizeof(uint8_t)), io_r, wb_rd) \
-	INST_ESAC(iorw, type_rd_raea, INST_IO_Ru(sizeof(uint16_t)), io_r, wb_rd) \
-	INST_ESAC(iorl, type_rd_raea, INST_IO_Ru(sizeof(uint32_t)), io_r, wb_rd) \
+	INST_ESAC(iorb, type_rd_raea, NOP(), io_ld8u, wb_rd) \
+	INST_ESAC(iorw, type_rd_raea, NOP(), io_ld16u, wb_rd) \
+	INST_ESAC(iorl, type_rd_raea, NOP(), io_ld32, wb_rd) \
 	\
-	INST_ESAC(iorbs, type_rd_raea, INST_IO_Rs(sizeof(int8_t)), io_r, wb_rd) \
-	INST_ESAC(iorws, type_rd_raea, INST_IO_Rs(sizeof(int16_t)), io_r, wb_rd) \
+	INST_ESAC(iorbs, type_rd_raea, NOP(), io_ld8s, wb_rd) \
+	INST_ESAC(iorws, type_rd_raea, NOP(), io_ld16s, wb_rd) \
 	\
-	INST_ESAC(iowb, type_rdea_ra, INST_IO_W(sizeof(uint8_t)), io_w, nop) \
-	INST_ESAC(ioww, type_rdea_ra, INST_IO_W(sizeof(uint16_t)), io_w, nop) \
-	INST_ESAC(iowl, type_rdea_ra, INST_IO_W(sizeof(uint32_t)), io_w, nop) \
+	INST_ESAC(iowb, type_rdea_ra, NOP(), io_st8, nop) \
+	INST_ESAC(ioww, type_rdea_ra, NOP(), io_st16, nop) \
+	INST_ESAC(iowl, type_rdea_ra, NOP(), io_st32, nop) \
 	\
 	INST_ESAC(brreq, type_ra_rb_pcea, RRCC(eq, brr), nop, nop) \
 	INST_ESAC(brrgt, type_ra_rb_pcea, RRCC(gt, brr), nop, nop) \

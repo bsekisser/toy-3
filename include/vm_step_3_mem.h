@@ -1,74 +1,62 @@
-static void vm_step_3_io_r(_PASS_VM, _PASS_INST)
-{
-	uint32_t data;
-	
-	data = io_read(vm, EA, MA.size);
-
-	switch(MA.size)
-	{
-		case sizeof(uint8_t):
-			vR(D) = MA.is_signed ? (int8_t)data : (uint8_t)data;
-			break;
-		case sizeof(uint16_t):
-			vR(D) = MA.is_signed ? (int16_t)data : (uint16_t)data;
-			break;
-		default:
-			vR(D) = data;
+#define VM_STEP_3_IO_LD(_esac, _type) \
+	static void vm_step_3_io_ld##_esac(_PASS_VM, _PASS_INST) \
+	{ \
+		vR(D) = (_type)io_read(vm, EA, sizeof(_type)); \
 	}
 
-	vm->cycle++;
-	
-	TAILCALL_NEXT();
-}
+VM_STEP_3_IO_LD(8s, int8_t)
+VM_STEP_3_IO_LD(8u, uint8_t)
+VM_STEP_3_IO_LD(16s, int16_t)
+VM_STEP_3_IO_LD(16u, uint16_t)
+VM_STEP_3_IO_LD(32, uint32_t)
 
-static void vm_step_3_io_w(_PASS_VM, _PASS_INST)
-{
-	io_write(vm, EA, vR(A), MA.size);
+#undef VM_STEP_3_IO_LD
 
-	vm->cycle++;
+/* **** */
 
-	TAILCALL_NEXT();
-}
-	
-static void vm_step_3_mem_r(_PASS_VM, _PASS_INST)
-{
-	switch(MA.size)
-	{
-		case sizeof(uint8_t):
-			vR(D) = MA.is_signed ? *(int8_t*)EA : *(uint8_t*)EA;
-			break;
-		case sizeof(uint16_t):
-			vR(D) = MA.is_signed ? *(int16_t*)EA : *(uint16_t*)EA;
-			break;
-		default:
-			vR(D) = *(uint32_t*)EA;
-			break;
+#define VM_STEP_3_IO_ST(_esac, _type) \
+	static void vm_step_3_io_st##_esac(_PASS_VM, _PASS_INST) \
+	{ \
+		io_write(vm, EA, vR(D), sizeof(_type)); \
 	}
 
-	vm->cycle++;
+VM_STEP_3_IO_ST(8, uint8_t)
+VM_STEP_3_IO_ST(16, uint16_t)
+VM_STEP_3_IO_ST(32, uint32_t)
 
-	TAILCALL_NEXT();
-}
+#undef VM_STEP_3_IO_ST
 
-static void vm_step_3_mem_w(_PASS_VM, _PASS_INST)
-{
-	switch(MA.size)
-	{
-		case sizeof(uint8_t):
-			*(uint8_t*)EA = vR(A);
-			break;
-		case sizeof(uint16_t):
-			*(uint16_t*)EA = vR(A);
-			break;
-		case sizeof(uint32_t):
-			*(uint32_t*)EA = vR(A);
-			break;
+/* **** */
+
+#define VM_STEP_3_MA_LD(_esac, _type) \
+	static void vm_step_3_ma_ld##_esac(_PASS_VM, _PASS_INST) \
+	{ \
+		vR(D) = *(_type *)EA; \
 	}
 
-	vm->cycle++;
+VM_STEP_3_MA_LD(8s, int8_t)
+VM_STEP_3_MA_LD(8u, uint8_t)
+VM_STEP_3_MA_LD(16s, int16_t)
+VM_STEP_3_MA_LD(16u, uint16_t)
+VM_STEP_3_MA_LD(32, uint32_t)
 
-	TAILCALL_NEXT();
-}
+#undef VM_STEP_3_MA_LD
+
+/* **** */
+
+#define VM_STEP_3_MA_ST(_esac, _type) \
+	static void vm_step_3_ma_st##_esac(_PASS_VM, _PASS_INST) \
+	{ \
+		*(_type *)EA = vR(A); \
+	}
+
+VM_STEP_3_MA_ST(8, uint8_t)
+VM_STEP_3_MA_ST(16, uint16_t)
+VM_STEP_3_MA_ST(32, uint32_t)
+
+#undef VM_STEP_3_MA_ST
+
+/* **** */
 
 static void vm_step_3_nop(_PASS_VM, _PASS_INST)
 {

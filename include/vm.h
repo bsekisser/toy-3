@@ -151,17 +151,15 @@ typedef struct vm_ixr_t {
 
 		uint8_t				rr[4];
 #define rR(_x) inst->rr[_rR##_x]
-
-		struct {					/* memory access */
-			uint8_t			is_signed:1;
-			uint8_t			size;
-		}ma;
-#define MA inst->ma
 }vm_ixr_t;
 
 #define VM_NVRAM_ALLOC		256
 #define VM_ROM_ALLOC		Kb(32)
 #define VM_SDRAM_ALLOC		Mb(1)
+
+#define VM_NVRAM_BITS		VM_NVRAM_ALLOC >> 3
+#define VM_ROM_BITS			VM_ROM_ALLOC >> 3
+#define VM_SDRAM_BITS		VM_SDRAM_ALLOC >> 3
 
 #define VM_NVRAM_MASK		(VM_NVRAM_ALLOC - 1)
 #define VM_ROM_MASK			(VM_ROM_ALLOC - 1)
