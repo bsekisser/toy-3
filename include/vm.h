@@ -115,42 +115,35 @@ typedef struct trap_table_t {
 typedef struct vm_t** vm_h;
 typedef struct vm_t* vm_p;
 
+typedef void (**vm_fn_p)(vm_p vm);
+typedef void (*vm_fn_t)(vm_p vm);
+
 typedef struct vm_ixr_t* vm_ixr_p;
-
-#define IF_VM(_x) _x
-#define _PASS_VM vm_p vm
-
-#define IF_INST(_x) _x
-#define _PASS_INST vm_ixr_p inst
-
-typedef void (**vm_fn_p)(_PASS_VM, _PASS_INST);
-typedef void (*vm_fn_t)(_PASS_VM, _PASS_INST);
-
 typedef struct vm_ixr_t {
 //		vm_p				vm;
 
-		uint32_t			rv[4];
-#define vR(_x) inst->rv[_rR##_x]
-#define SA vR(C)
+		uint32_t			v[4];
+#define vR(_x)				IXR->v[_rR##_x]
+#define SA					vR(C)
 
 		uint32_t*			ip;
-#define IP inst->ip
+#define IP					IXR->ip
 		uint32_t			ir;
-#define IR inst->ir
+#define IR					IXR->ir
 
 		vm_fn_p				step_next;
 		vm_fn_p				step_fn_list;
 
 		union {
 			uint32_t		ea;
-#define EA inst->ea
+#define EA					IXR->ea
 
 			uint32_t		vv;
-#define VV inst->vv
+#define VV					IXR->vv
 		};
 
-		uint8_t				rr[4];
-#define rR(_x) inst->rr[_rR##_x]
+		uint8_t				r[4];
+#define rR(_x)				IXR->r[_rR##_x]
 }vm_ixr_t;
 
 #define VM_NVRAM_ALLOC		256
@@ -171,7 +164,8 @@ typedef struct vm_ixr_t {
 #define VM_DEVICE_OFFSET(_pat)	((_pat) & 0xff)
 
 typedef struct vm_t {
-	vm_ixr_t				inst;
+	vm_ixr_t				ixr;
+#define IXR					(&vm->ixr)
 
 	uint64_t				cycle;
 
@@ -181,7 +175,7 @@ typedef struct vm_t {
 		uint32_t			spr[_BV(REG_BITS)];
 #define SPR(_x)				vm->spr[_x & _BM(REG_BITS)]
 
-#define rSPR(_x) rSPR_##_x
+#define rSPR(_x) SPR(rSPR_##_x)
 
 #define HI SPR(rSPR(HI))
 #define LO SPR(rSPR(LO))
@@ -193,13 +187,8 @@ typedef struct vm_t {
 
 	uint32_t				pc;
 #define PC					vm->pc
+#define pPC					(uint32_t*)PC
 
-	uint32_t**				ppc;
-#define pPC					(*vm->ppc)
-
-	uint32_t**				sp;
-#define pSP					(*vm->sp)
-	
 	uint32_t				psr;
 #define PSR vm->psr
 	
@@ -208,6 +197,20 @@ typedef struct vm_t {
 	uint8_t					rom[VM_ROM_ALLOC];
 }vm_t;
 
-void vm_interrupt(_PASS_VM);
-void vm_reset(_PASS_VM);
-int vm_step(_PASS_VM);
+#define PXX(_xx, _pre, _post) \
+	({ \
+		_xx += _pre; \
+		uint32_t* ppc = (uint32_t*)_xx; \
+		_xx += _post; \
+		ppc; \
+	})
+
+#define POP() \
+	*PXX(SP, 0, 4)
+
+#define PUSH(_x) \
+	*PXX(SP, -4, 0) = (uint32_t)_x;
+
+void vm_interrupt(vm_p vm);
+void vm_reset(vm_p vm);
+int vm_step(vm_p vm);

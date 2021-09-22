@@ -15,7 +15,7 @@ enum {
 #define RRCC_ESAC(_rrcc_cc, _test) \
 	ESAC_ACTION(_rrcc_##_rrcc_cc, cc_pass = (_test))
 
-static inline void rrcc(_PASS_VM, _PASS_INST, int test, int operation)
+static inline void rrcc(vm_p vm, int test, int operation)
 {
 	int cc_pass;
 	
@@ -41,4 +41,4 @@ static inline void rrcc(_PASS_VM, _PASS_INST, int test, int operation)
 }
 
 #define RRCC(_test, _operation) \
-	rrcc(vm, inst, _rrcc_##_test, _##_operation##cc)
+	rrcc(vm, _rrcc_##_test, _##_operation##cc)

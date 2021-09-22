@@ -8,10 +8,10 @@
 
 #define _TAILCALL_NEXT() \
 	({ \
-		if(inst->step_next) { \
-			vm_fn_t fn = *inst->step_next; \
-			inst->step_next++; \
-			return(fn(vm, inst)); \
+		if(IXR->step_next) { \
+			vm_fn_t fn = *IXR->step_next; \
+			IXR->step_next++; \
+			return(fn(vm)); \
 		} \
 	})
 
@@ -21,7 +21,7 @@
 #define IF_THREADED_DISPATCH(_iff, _action) \
 	if(!_iff) ({ _action; })
 
-#define _TRACE_ALL 1
+#define _TRACE_ALL 0
 #define _TRACE_DECODE _TRACE_ALL
 #define _TRACE_EXECUTE _TRACE_ALL
 #define _TRACE_FETCH _TRACE_ALL
@@ -81,22 +81,19 @@ static vm_p vm_alloc(vm_h h2vm)
 	return(*h2vm);
 }
 
-void vm_reset(_PASS_VM)
+void vm_reset(vm_p vm)
 {
-	vm->ppc = (uint32_t**)&vm->pc;
-	vm->sp = (uint32_t**)&GPR(rSP);
-	
-	pPC = (uint32_t*)&vm->rom[0];
-	pSP = (uint32_t*)&vm->sdram[VM_SDRAM_ALLOC];
+	PC = (uint32_t)&vm->rom[0];
+	SP = (uint32_t)&vm->sdram[VM_SDRAM_ALLOC];
 
 	vm->cycle = 0;
 
 	vm->psr = 1 << PSR_BIT_US;
 }
 
-static void vm_step_0_fetch(_PASS_VM, _PASS_INST)
+static void vm_step_0_fetch(vm_p vm)
 {
-	IR = *(IP = pPC++);
+	IR = *(IP = PXX(PC, 0, 4));
 	
 	uint32_t trip = IP - (uint32_t*)&vm->rom;
 
@@ -107,30 +104,28 @@ static void vm_step_0_fetch(_PASS_VM, _PASS_INST)
 
 	vm_inst_fn_p vmifp = &vm_step_inst[IR_OP];
 
-	inst->step_fn_list = (vm_fn_p)vmifp;
-	inst->step_next = inst->step_fn_list;
+	IXR->step_fn_list = (vm_fn_p)vmifp;
+	IXR->step_next = IXR->step_fn_list;
 	
 	if(vmifp)
 	{
 		IF_THREADED_DISPATCH(1, TAILCALL_NEXT());
 		IF_THREADED_DISPATCH(0, ({
-			IF_PIPELINE(1, vmifp->decode(vm, inst));
-			vmifp->execute(vm, inst);
-			IF_PIPELINE(1, vmifp->mem(vm, inst));
-			IF_PIPELINE(1, vmifp->wb(vm, inst));
+			IF_PIPELINE(1, vmifp->decode(vm));
+			vmifp->execute(vm);
+			IF_PIPELINE(1, vmifp->mem(vm));
+			IF_PIPELINE(1, vmifp->wb(vm));
 		}));
 	}
 
 //	return((int)vmifp);
 }
 
-int vm_step(_PASS_VM)
+int vm_step(vm_p vm)
 {
-	IF_INST(vm_ixr_p) inst = &vm->inst;
-	
 //	TRACE();
 	
-	vm_step_0_fetch(vm, inst);
+	vm_step_0_fetch(vm);
 	vm->cycle++;
 	
 	return(0);
@@ -159,8 +154,6 @@ int main(void)
 
 		printf("\n");
 
-		vm_ixr_p inst = &vm->inst;
-
 		IR = _inst_esac0_limit_k;
 		printf("IR = 0x%08x -- IR_OP = 0x%08x, bits = 0x%02x\n", IR, IR_OP, IR_OP_BITS);
 		
@@ -177,7 +170,7 @@ int main(void)
 
 	vm_reset(vm);
 
-	int step_count = 0 ? MHz(100) :  32;
+	int step_count = 1 ? MHz(100) :  32;
 	for(int i = step_count; i > 0; i--)
 		vm_step(vm);
 

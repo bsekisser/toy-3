@@ -46,8 +46,8 @@ enum {
 #define SHIFT_ESAC(_esac) \
 	ESAC_ACTION(SHIFT_ENUM(_esac), vR(D) = _##_esac(vR(A), SA))
 
-#define SHIFT(_esac) _shift_box(vm, inst, SHIFT_ENUM(_esac))
-static void _shift_box(_PASS_VM, _PASS_INST, int esac)
+#define SHIFT(_esac) _shift_box(vm, SHIFT_ENUM(_esac))
+static void _shift_box(vm_p vm, int esac)
 {
 	switch(esac)
 	{

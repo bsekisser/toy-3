@@ -21,12 +21,6 @@
 
 #define NOP() ({;})
 
-#define PUSH(_x) \
-	(*--pSP) = (uint32_t)(_x)
-
-#define POP() \
-	(*pSP++)
-
 #define RTI() \
 	RTS()
 

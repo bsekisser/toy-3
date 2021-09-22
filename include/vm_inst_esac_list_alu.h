@@ -30,7 +30,7 @@
 #define ALU_ESAC(_esac, _action) \
 	ESAC_ACTION(INST_ENUM(_esac), _action)
 
-static void alu(_PASS_VM, _PASS_INST, uint8_t operation, uint32_t rbvv, int set_flags)
+static void alu(vm_p vm, uint8_t operation, uint32_t rbvv, int set_flags)
 {
 	vR(D) = vR(A);
 	
@@ -57,7 +57,7 @@ static void alu(_PASS_VM, _PASS_INST, uint8_t operation, uint32_t rbvv, int set_
 	}
 }
 
-static void alu_q(_PASS_VM, _PASS_INST, uint8_t operation)
+static void alu_q(vm_p vm, uint8_t operation)
 {
 	switch(operation)
 	{
@@ -68,17 +68,17 @@ static void alu_q(_PASS_VM, _PASS_INST, uint8_t operation)
 #undef ALU_ESAC
 
 #define ALU(_esac) \
-	alu(vm, inst, INST_ENUM(_esac), vR(B), BEXT(IR, 31))
+	alu(vm, INST_ENUM(_esac), vR(B), BEXT(IR, 31))
 
 #define ALU_I(_esac) \
-	alu(vm, inst, INST_ENUM(_esac), VV, 0)
+	alu(vm, INST_ENUM(_esac), VV, 0)
 
 #define ALU_Iu(_esac) \
-	alu(vm, inst, INST_ENUM(_esac), VV & 0xffff, 0)
+	alu(vm, INST_ENUM(_esac), VV & 0xffff, 0)
 
 
 #define ALU_Q(_esac) \
-	alu_q(vm, inst, INST_ENUM(_esac))
+	alu_q(vm, INST_ENUM(_esac))
 
 #define ALU_RBVV(_esac, _rbvv, _set_flags) \
-	alu(vm, inst, INST_ENUM(_esac), _rbvv, _set_flags)
+	alu(vm, INST_ENUM(_esac), _rbvv, _set_flags)

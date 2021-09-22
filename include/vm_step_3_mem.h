@@ -1,5 +1,5 @@
 #define VM_STEP_3_IO_LD(_esac, _type) \
-	static void vm_step_3_io_ld##_esac(_PASS_VM, _PASS_INST) \
+	static void vm_step_3_io_ld##_esac(vm_p vm) \
 	{ \
 		vR(D) = (_type)io_read(vm, EA, sizeof(_type)); \
 	}
@@ -15,7 +15,7 @@ VM_STEP_3_IO_LD(32, uint32_t)
 /* **** */
 
 #define VM_STEP_3_IO_ST(_esac, _type) \
-	static void vm_step_3_io_st##_esac(_PASS_VM, _PASS_INST) \
+	static void vm_step_3_io_st##_esac(vm_p vm) \
 	{ \
 		io_write(vm, EA, vR(D), sizeof(_type)); \
 	}
@@ -29,7 +29,7 @@ VM_STEP_3_IO_ST(32, uint32_t)
 /* **** */
 
 #define VM_STEP_3_MA_LD(_esac, _type) \
-	static void vm_step_3_ma_ld##_esac(_PASS_VM, _PASS_INST) \
+	static void vm_step_3_ma_ld##_esac(vm_p vm) \
 	{ \
 		vR(D) = *(_type *)EA; \
 	}
@@ -45,7 +45,7 @@ VM_STEP_3_MA_LD(32, uint32_t)
 /* **** */
 
 #define VM_STEP_3_MA_ST(_esac, _type) \
-	static void vm_step_3_ma_st##_esac(_PASS_VM, _PASS_INST) \
+	static void vm_step_3_ma_st##_esac(vm_p vm) \
 	{ \
 		*(_type *)EA = vR(A); \
 	}
@@ -58,7 +58,7 @@ VM_STEP_3_MA_ST(32, uint32_t)
 
 /* **** */
 
-static void vm_step_3_nop(_PASS_VM, _PASS_INST)
+static void vm_step_3_nop(vm_p vm)
 {
 	TAILCALL_NEXT();
 }

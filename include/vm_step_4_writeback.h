@@ -4,14 +4,14 @@
 	#define TRACE_WB(_f, args...)
 #endif
 
-static void vm_step_4_writeback_nop(_PASS_VM, _PASS_INST)
+static void vm_step_4_writeback_nop(vm_p vm)
 {
 	TRACE_WB();
 
 //	TAILCALL_NEXT();
 }
 
-static void vm_step_4_writeback_wb_rd(_PASS_VM, _PASS_INST)
+static void vm_step_4_writeback_wb_rd(vm_p vm)
 {
 	TRACE_WB("WBd -- r%0u == 0x%08x", rR(D), vR(D));
 
@@ -21,7 +21,7 @@ static void vm_step_4_writeback_wb_rd(_PASS_VM, _PASS_INST)
 //	TAILCALL_NEXT();
 }
 
-/*static void vm_step_4_writeback_wb_rdrc(_PASS_VM, _PASS_INST)
+/*static void vm_step_4_writeback_wb_rdrc(vm_p vm)
 {
 	vm_step_4_writeback_wb_rd(vm, inst);
 

@@ -1,4 +1,4 @@
-static uint32_t io_read(_PASS_VM, uint32_t pat, uint8_t size)
+static uint32_t io_read(vm_p vm, uint32_t pat, uint8_t size)
 {
 	uint32_t dout = 0;
 
@@ -21,7 +21,7 @@ static uint32_t io_read(_PASS_VM, uint32_t pat, uint8_t size)
 	return(dout);
 }
 
-static void io_write(_PASS_VM, uint32_t pat, uint32_t data, uint8_t size)
+static void io_write(vm_p vm, uint32_t pat, uint32_t data, uint8_t size)
 {
 	for(int i = 0; i < size; i++)
 	{

@@ -1,1 +1,1 @@
-void pseudo_cc_init(_PASS_VM);
+void pseudo_cc_init(vm_p vm);
