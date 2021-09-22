@@ -18,50 +18,15 @@
 
 /* **** */
 
-static void _decode__a(vm_p vm, int32_t* opcode, uint8_t *bits)
+#define _decode__rr(_rrx, _vm, _opcode, _bits) __decode__rr(_vm, _opcode, _bits, &rR(_rrx), #_rrx)
+static void __decode__rr(vm_p vm, int32_t* opcode, uint8_t* bits, uint8_t* rr, const char* rrs)
 {
-	rR(A) = _BMASR(*opcode, IR_REG_BITS);
-	
-	*bits += IR_REG_BITS;
-
-	TRACE_DECODE(3, "rA = 0x%02x, opcode = 0x%08x, bits = 0x%02x, left = 0x%02x",
-		rR(A), *opcode, *bits, 32 - *bits);
-	
-	assert(*bits <= 32);
-}
-
-static void _decode__b(vm_p vm, int32_t* opcode, uint8_t *bits)
-{
-	rR(B) = _BMASR(*opcode, IR_REG_BITS);
+	*rr = _BMASR(*opcode, IR_REG_BITS);
 
 	*bits += IR_REG_BITS;
 
-	TRACE_DECODE(3, "rB = 0x%02x, opcode = 0x%08x, bits = 0x%02x, left = 0x%02x",
-		rR(B), *opcode, *bits, 32 - *bits);
-
-	assert(*bits <= 32);
-}
-
-static void _decode__c(vm_p vm, int32_t* opcode, uint8_t *bits)
-{
-	rR(C) = _BMASR(*opcode, IR_REG_BITS);
-
-	*bits += IR_REG_BITS;
-
-	TRACE_DECODE(3, "rC = 0x%02x, opcode = 0x%08x, bits = 0x%02x, left = 0x%02x",
-		rR(C), *opcode, *bits, 32 - *bits);
-
-	assert(*bits <= 32);
-}
-
-static void _decode__d(vm_p vm, int32_t* opcode, uint8_t *bits)
-{
-	rR(D) = _BMASR(*opcode, IR_REG_BITS);
-
-	*bits += IR_REG_BITS;
-
-	TRACE_DECODE(3, "rD = 0x%02x, opcode = 0x%08x, bits = 0x%02x, left = 0x%02x",
-		rR(D), *opcode, *bits, 32 - *bits);
+	TRACE_DECODE(3, "r%s = 0x%02x, opcode = 0x%08x, bits = 0x%02x, left = 0x%02x",
+		rrs, *rr, *opcode, *bits, 32 - *bits);
 
 	assert(*bits <= 32);
 }
@@ -80,62 +45,44 @@ static void _decode__op(vm_p vm, int32_t* opcode, uint8_t *bits)
 
 /* **** */
 
-static void _decode__ra(vm_p vm, int32_t* opcode, uint8_t *bits)
-{
-	_decode__a(vm, opcode, bits);
-	vR(A) = rR(A) ? GPR(rR(A)) : 0;
-}
-
-static void _decode__rb(vm_p vm, int32_t* opcode, uint8_t *bits)
-{
-	_decode__b(vm, opcode, bits);
-	vR(B) = rR(B) ? GPR(rR(B)) : 0;
-}
-
-static void _decode__rc(vm_p vm, int32_t* opcode, uint8_t *bits)
-{
-	_decode__c(vm, opcode, bits);
-	vR(C) = rR(C) ? GPR(rR(C)) : 0;
-}
+#define _decode__vr(_rrx, _vm, _opcode, _bits) \
+	({ \
+		_decode__rr(_rrx, _vm, _opcode, _bits); \
+		vR(_rrx) = rR(_rrx) ? GPR(rR(_rrx)) : 0; \
+	})
 
 /* **** */
 
 static void _decode_op_ra(vm_p vm, int32_t* opcode, uint8_t *bits)
 {
 	_decode__op(vm, opcode, bits);
-	_decode__ra(vm, opcode, bits);
+	_decode__vr(A, vm, opcode, bits);
 }
 
 static void _decode_op_ra_rb(vm_p vm, int32_t* opcode, uint8_t *bits)
 {
 	_decode_op_ra(vm, opcode, bits);
-	_decode__rb(vm, opcode, bits);
+	_decode__vr(B, vm, opcode, bits);
 }
-
-/*static void _decode_op_ra_rb_rc(vm_p vm, int32_t* opcode, uint8_t *bits)
-{
-	_decode_op_ra_rb(vm, opcode, bits);
-	_decode__rc(vm, opcode, bits);
-}*/
 
 /* **** */
 
 static void _decode_op_rd(vm_p vm, int32_t* opcode, uint8_t *bits)
 {
 	_decode__op(vm, opcode, bits);
-	_decode__d(vm, opcode, bits);
+	_decode__rr(D, vm, opcode, bits);
 }
 
 static void _decode_op_rd_ra(vm_p vm, int32_t* opcode, uint8_t *bits)
 {
 	_decode_op_rd(vm, opcode, bits);
-	_decode__ra(vm, opcode, bits);
+	_decode__vr(A, vm, opcode, bits);
 }
 
 static void _decode_op_rd_ra_rb(vm_p vm, int32_t* opcode, uint8_t *bits)
 {
 	_decode_op_rd_ra(vm, opcode, bits);
-	_decode__rb(vm, opcode, bits);
+	_decode__vr(B, vm, opcode, bits);
 }
 
 /* **** */
@@ -170,19 +117,6 @@ static void vm_step_1_decode_type_ra(vm_p vm)
 	
 	TAILCALL_NEXT();
 }
-
-/*static void vm_step_1_decode_type_ra_b(vm_p vm)
-{
-	uint8_t bits = 0;
-	int32_t opcode = 0;
-
-	_decode_op_ra(vm, &opcode, &bits);
-	_decode__b(vm, &opcode, &bits);
-
-	TRACE_DECODE(1, "rA = 0x%02x, B = 0x%02x", rR(A), rR(B));
-
-	TAILCALL_NEXT();
-}*/
 
 static void vm_step_1_decode_type_ra_rb(vm_p vm)
 {
@@ -234,7 +168,7 @@ static void vm_step_1_decode_type_rd_a(vm_p vm)
 	int32_t opcode = 0;
 
 	_decode_op_rd(vm, &opcode, &bits);
-	_decode__a(vm, &opcode, &bits);
+	_decode__rr(A, vm, &opcode, &bits);
 
 	TRACE_DECODE(1, "rD = 0x%02x, A = 0x%02x", rR(D), rR(A));
 
@@ -275,8 +209,8 @@ static void vm_step_1_decode_type_rd_ra_b_c(vm_p vm)
 	int32_t opcode = 0;
 
 	_decode_op_rd_ra(vm, &opcode, &bits);
-	_decode__b(vm, &opcode, &bits);
-	_decode__c(vm, &opcode, &bits);
+	_decode__rr(B, vm, &opcode, &bits);
+	_decode__rr(C, vm, &opcode, &bits);
 
 	TRACE_DECODE(1, "rD = 0x%02x, rA = 0x%02x, rB = 0x%02x, rC = 0x%02x",
 		rR(D), rR(A), rR(B), rR(C));
@@ -304,20 +238,6 @@ static void vm_step_1_decode_type_rd_ra_i(vm_p vm)
 	TAILCALL_NEXT();
 }
 
-/*static void vm_step_1_decode_type_rd_ra_u(vm_p vm)
-{
-	TRACE_DECODE();
-	
-	uint8_t bits = 0;
-	int32_t opcode = 0;
-
-	_decode_op_rd_ra(vm, &opcode, &bits);
-
-	VV = opcode & 0xffff;
-
-	TAILCALL_NEXT();
-}*/
-
 static void vm_step_1_decode_type_rd_ra_rb(vm_p vm)
 {
 	uint8_t bits = 0;
@@ -341,7 +261,7 @@ static void vm_step_1_decode_type_rd_ra_rb_rc(vm_p vm)
 	int32_t opcode = 0;
 
 	_decode_op_rd_ra_rb(vm, &opcode, &bits);
-	_decode__rc(vm, &opcode, &bits);
+	_decode__vr(C, vm, &opcode, &bits);
 
 	TRACE_DECODE(1, "rD = 0x%02x, rA = 0x%02x, rB = 0x%02x, rC = 0x%02x",
 		rR(D), rR(A), rR(B), rR(C));
