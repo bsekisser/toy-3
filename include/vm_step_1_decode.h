@@ -171,7 +171,7 @@ static void vm_step_1_decode_type_ra(vm_p vm)
 	TAILCALL_NEXT();
 }
 
-static void vm_step_1_decode_type_ra_b(vm_p vm)
+/*static void vm_step_1_decode_type_ra_b(vm_p vm)
 {
 	uint8_t bits = 0;
 	int32_t opcode = 0;
@@ -182,7 +182,7 @@ static void vm_step_1_decode_type_ra_b(vm_p vm)
 	TRACE_DECODE(1, "rA = 0x%02x, B = 0x%02x", rR(A), rR(B));
 
 	TAILCALL_NEXT();
-}
+}*/
 
 static void vm_step_1_decode_type_ra_rb(vm_p vm)
 {

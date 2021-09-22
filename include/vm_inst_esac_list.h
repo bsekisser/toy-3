@@ -136,7 +136,7 @@ enum {
 	INST_ESAC(msubu, type_ra_rb, ALU_Q(msubu), nop, nop) \
 	\
 	INST_ESAC(mfspr, type_rd_a, vR(D) = SPR(rR(A)), nop, wb_rd) \
-	INST_ESAC(mtspr, type_ra_b, SPR(rR(B)) = vR(A), nop, nop) \
+	INST_ESAC(mtspr, type_rd_a, vR(D) = vR(A), nop, wb_spr) \
 	\
 	INST_ESAC(maxu, type_rd_ra_rb, vR(D) = MAX((unsigned)vR(A), (unsigned)vR(B)), nop, wb_rd) \
 	INST_ESAC(maxs, type_rd_ra_rb, vR(D) = MAX((signed)vR(A), (signed)vR(B)), nop, wb_rd) \

@@ -30,3 +30,8 @@ static void vm_step_4_writeback_wb_rd(vm_p vm)
 	if(rR(C))
 		GPR(rR(C)) = vR(C);
 }*/
+
+static void vm_step_4_writeback_wb_spr(vm_p vm)
+{
+	SPR(rR(D)) = vR(D);
+}
