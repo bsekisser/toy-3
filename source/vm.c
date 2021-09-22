@@ -50,9 +50,9 @@
 #include "vm_step_2_execute.h"
 
 #undef INST_ESAC
-#define INST_ESAC(_esac, _decode, _action, _mem, _wb) \
+#define INST_ESAC(_esac, _type, _decode, _action, _mem, _wb) \
 	[INST_ENUM(_esac)] = { \
-		vm_step_1_decode_##_decode, \
+		vm_step_1_decode_##_type##_##_decode, \
 		vm_step_2_execute_##_esac, \
 		vm_step_3_##_mem, \
 		vm_step_4_writeback_##_wb, \

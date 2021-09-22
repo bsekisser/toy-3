@@ -6,12 +6,12 @@
 
 
 #undef INST_ESAC
-#define INST_ESAC(_esac, _decode, _action, _mem, _wb) \
+#define INST_ESAC(_esac, _type, _decode, _action, _mem, _wb) \
 	static void vm_step_2_execute_##_esac(vm_p vm) \
 	{ \
 		TRACE_EXECUTE(); \
 	\
-		IF_PIPELINE(0, vm_step_1_decode_##_decode(vm)); \
+		IF_PIPELINE(0, vm_step_1_decode_##_type##_##_decode(vm)); \
 		\
 		do { _action; }while(0); \
 	\
