@@ -27,6 +27,7 @@ enum {
 enum {
 	rSPR_HI,
 	rSPR_LO,
+	rSPR_PC = 0x1f,
 	/* **** */
 	rSPR_Q = rSPR_HI,
 };
@@ -185,10 +186,6 @@ typedef struct vm_t {
 	uint32_t				gpr[_BV(REG_BITS)];
 #define GPR(_x)				vm->gpr[_x & _BM(REG_BITS)]
 
-	uint32_t				pc;
-#define PC					vm->pc
-#define pPC					(uint32_t*)PC
-
 	uint32_t				psr;
 #define PSR vm->psr
 	
@@ -196,6 +193,9 @@ typedef struct vm_t {
 	uint8_t					nvram[VM_NVRAM_ALLOC];
 	uint8_t					rom[VM_ROM_ALLOC];
 }vm_t;
+
+#define PC					rSPR(PC)
+#define pPC					(uint32_t*)PC
 
 #define PXX(_xx, _pre, _post) \
 	({ \
